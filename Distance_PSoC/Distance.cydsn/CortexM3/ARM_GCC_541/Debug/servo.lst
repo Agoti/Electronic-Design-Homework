@@ -1,0 +1,2211 @@
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"servo.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.SetServoLimit,"ax",%progbits
+  20              		.align	2
+  21              		.global	SetServoLimit
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	SetServoLimit, %function
+  25              	SetServoLimit:
+  26              	.LFB63:
+  27              		.file 1 "servo.c"
+   1:servo.c       **** /* ========================================
+   2:servo.c       ****  *
+   3:servo.c       ****  * Copyright YOUR COMPANY, THE YEAR
+   4:servo.c       ****  * All Rights Reserved
+   5:servo.c       ****  * UNPUBLISHED, LICENSED SOFTWARE.
+   6:servo.c       ****  *
+   7:servo.c       ****  * CONFIDENTIAL AND PROPRIETARY INFORMATION
+   8:servo.c       ****  * WHICH IS THE PROPERTY OF your company.
+   9:servo.c       ****  *
+  10:servo.c       ****  * ========================================
+  11:servo.c       **** */
+  12:servo.c       **** 
+  13:servo.c       **** /* [] END OF FILE */
+  14:servo.c       **** #include "servo.h"
+  15:servo.c       **** #include "project.h"
+  16:servo.c       **** 
+  17:servo.c       **** void SetServoLimit(unsigned char id, unsigned short int cw_limit, unsigned short int ccw_limit)
+  18:servo.c       **** {
+  28              		.loc 1 18 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              	.LVL0:
+  33 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+  34              		.cfi_def_cfa_offset 24
+  35              		.cfi_offset 4, -24
+  36              		.cfi_offset 5, -20
+  37              		.cfi_offset 6, -16
+  38              		.cfi_offset 7, -12
+  39              		.cfi_offset 8, -8
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 2
+
+
+  40              		.cfi_offset 14, -4
+  41 0004 0446     		mov	r4, r0
+  42              	.LVL1:
+  19:servo.c       ****     unsigned short int temp_ccw = 0; // 临时速度，用于进行方向判别 // (temp velocity t
+  20:servo.c       ****     unsigned short int temp_cw = 0;
+  21:servo.c       ****     unsigned char temp_ccw_h = 0; // 待发送数据h位 // (h bits to be sended)
+  22:servo.c       ****     unsigned char temp_ccw_l = 0; // 待发送数据l位 // (l bits to be sended)
+  23:servo.c       ****     unsigned char temp_cw_h = 0;
+  24:servo.c       ****     unsigned char temp_cw_l = 0;
+  25:servo.c       ****     unsigned char temp_sum = 0; // 校验和寄存变量 // (temp variable to save checksum)
+  26:servo.c       ****     if (ccw_limit > 1023)
+  43              		.loc 1 26 0
+  44 0006 B2F5806F 		cmp	r2, #1024
+  45 000a 01D3     		bcc	.L2
+  27:servo.c       ****     {
+  28:servo.c       ****         temp_ccw = 1023;
+  46              		.loc 1 28 0
+  47 000c 40F2FF32 		movw	r2, #1023
+  48              	.LVL2:
+  49              	.L2:
+  29:servo.c       ****         // 限制速度值在可用范围内 // (limit the velocity to 0-1023)
+  30:servo.c       ****     }
+  31:servo.c       ****     else
+  32:servo.c       ****     {
+  33:servo.c       ****         temp_ccw = ccw_limit;
+  34:servo.c       ****     }
+  35:servo.c       ****     if (cw_limit > 1023)
+  50              		.loc 1 35 0
+  51 0010 B1F5806F 		cmp	r1, #1024
+  52 0014 01D3     		bcc	.L3
+  36:servo.c       ****     {
+  37:servo.c       ****         temp_cw = 1023;
+  53              		.loc 1 37 0
+  54 0016 40F2FF31 		movw	r1, #1023
+  55              	.LVL3:
+  56              	.L3:
+  38:servo.c       ****     }
+  39:servo.c       ****     else
+  40:servo.c       ****     {
+  41:servo.c       ****         temp_cw = cw_limit;
+  42:servo.c       ****     }
+  43:servo.c       ****     temp_ccw_h = (unsigned char)(temp_ccw >> 8);
+  57              		.loc 1 43 0
+  58 001a 160A     		lsrs	r6, r2, #8
+  59              	.LVL4:
+  44:servo.c       ****     temp_ccw_l = (unsigned char)temp_ccw; // 将16bit数据拆为2个8bit数据 // (split 16 bits t
+  60              		.loc 1 44 0
+  61 001c D5B2     		uxtb	r5, r2
+  62              	.LVL5:
+  45:servo.c       ****     temp_cw_h = (unsigned char)(temp_cw >> 8);
+  63              		.loc 1 45 0
+  64 001e 4FEA1128 		lsr	r8, r1, #8
+  65              	.LVL6:
+  46:servo.c       ****     temp_cw_l = (unsigned char)temp_cw; // 将16bit数据拆为2个8bit数据 // (split 16 bits to 
+  66              		.loc 1 46 0
+  67 0022 CFB2     		uxtb	r7, r1
+  68              	.LVL7:
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 3
+
+
+  47:servo.c       ****     // PORTA &= ~_BV(PA1);
+  48:servo.c       ****     // PORTA |= _BV(PA0); // 使总线处于主机发送状态 // (Set the bus to host transmit sta
+  49:servo.c       ****     // UCSR0A |= (1<<TXC0); // 清除UART_10写完成标志 // (Clear written flag of UART_10)
+  50:servo.c       ****     UART_PutChar(0xFF);       // 发送启动符号0xFF // (Send the start byte 0xff)
+  69              		.loc 1 50 0
+  70 0024 FF20     		movs	r0, #255
+  71              	.LVL8:
+  72 0026 FFF7FEFF 		bl	UART_PutChar
+  73              	.LVL9:
+  51:servo.c       ****     UART_PutChar(0xFF);       // 发送启动符号0xFF // (Send the start byte 0xff)
+  74              		.loc 1 51 0
+  75 002a FF20     		movs	r0, #255
+  76 002c FFF7FEFF 		bl	UART_PutChar
+  77              	.LVL10:
+  52:servo.c       ****     UART_PutChar(id);         // 发送id // (Send the servo’s ID)
+  78              		.loc 1 52 0
+  79 0030 2046     		mov	r0, r4
+  80 0032 FFF7FEFF 		bl	UART_PutChar
+  81              	.LVL11:
+  53:servo.c       ****     UART_PutChar(7);          // 发送数据长度为参数长度+2，参数长度为3 // (Send th
+  82              		.loc 1 53 0
+  83 0036 0720     		movs	r0, #7
+  84 0038 FFF7FEFF 		bl	UART_PutChar
+  85              	.LVL12:
+  54:servo.c       ****     UART_PutChar(0x03);       // 命令数据为“WRITE DATA” // (Send command “WRITE DATA”)
+  86              		.loc 1 54 0
+  87 003c 0320     		movs	r0, #3
+  88 003e FFF7FEFF 		bl	UART_PutChar
+  89              	.LVL13:
+  55:servo.c       ****     UART_PutChar(0x06);       // 舵机控制寄存器首地址
+  90              		.loc 1 55 0
+  91 0042 0620     		movs	r0, #6
+  92 0044 FFF7FEFF 		bl	UART_PutChar
+  93              	.LVL14:
+  56:servo.c       ****     UART_PutChar(temp_cw_l);  // 发送顺时针位置限制低位 // (Send the low byte of clockwi
+  94              		.loc 1 56 0
+  95 0048 3846     		mov	r0, r7
+  96 004a FFF7FEFF 		bl	UART_PutChar
+  97              	.LVL15:
+  57:servo.c       ****     UART_PutChar(temp_cw_h);  // 发送顺时针位置限制高位 //(Send the high byte of clockwi
+  98              		.loc 1 57 0
+  99 004e 4046     		mov	r0, r8
+ 100 0050 FFF7FEFF 		bl	UART_PutChar
+ 101              	.LVL16:
+  58:servo.c       ****     UART_PutChar(temp_ccw_l); // 发送逆时针位置限制低位 // (Send the low byte of counter
+ 102              		.loc 1 58 0
+ 103 0054 2846     		mov	r0, r5
+ 104 0056 FFF7FEFF 		bl	UART_PutChar
+ 105              	.LVL17:
+  59:servo.c       ****     UART_PutChar(temp_ccw_h); // 发送逆时针位置限制高位 // (Send the low byte of counter
+ 106              		.loc 1 59 0
+ 107 005a 3046     		mov	r0, r6
+ 108 005c FFF7FEFF 		bl	UART_PutChar
+ 109              	.LVL18:
+  60:servo.c       ****     temp_sum = id + 7 + 0x03 + 0x06 + temp_cw_l + temp_cw_h + temp_ccw_l + temp_ccw_h;
+ 110              		.loc 1 60 0
+ 111 0060 3819     		adds	r0, r7, r4
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 4
+
+
+ 112 0062 4044     		add	r0, r0, r8
+ 113 0064 2844     		add	r0, r0, r5
+ 114 0066 3044     		add	r0, r0, r6
+ 115 0068 1030     		adds	r0, r0, #16
+ 116 006a C0B2     		uxtb	r0, r0
+ 117              	.LVL19:
+  61:servo.c       ****     temp_sum = ~temp_sum;   // 计算校验和 // (Calculate the checksum)
+ 118              		.loc 1 61 0
+ 119 006c C043     		mvns	r0, r0
+ 120              	.LVL20:
+  62:servo.c       ****     UART_PutChar(temp_sum); // 发送校验和 // (Send checksum)
+ 121              		.loc 1 62 0
+ 122 006e C0B2     		uxtb	r0, r0
+ 123 0070 FFF7FEFF 		bl	UART_PutChar
+ 124              	.LVL21:
+  63:servo.c       ****     // while ( !( UCSR0A & (1<<TXC0)) ) ;
+  64:servo.c       ****     // PORTA |= _BV(PA1);
+  65:servo.c       ****     // PORTA &= ~_BV(PA0); // 使总线处于主机接收状态 // (Set the UART bus to host receiv
+  66:servo.c       ****     CyDelay(WAITING_TIME); // 送完成后，总线会被从机占用，反馈应答数据，所以
+ 125              		.loc 1 66 0
+ 126 0074 0220     		movs	r0, #2
+ 127 0076 FFF7FEFF 		bl	CyDelay
+ 128              	.LVL22:
+ 129 007a BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 130              		.cfi_endproc
+ 131              	.LFE63:
+ 132              		.size	SetServoLimit, .-SetServoLimit
+ 133 007e 00BF     		.section	.text.SetServoPosition,"ax",%progbits
+ 134              		.align	2
+ 135              		.global	SetServoPosition
+ 136              		.thumb
+ 137              		.thumb_func
+ 138              		.type	SetServoPosition, %function
+ 139              	SetServoPosition:
+ 140              	.LFB64:
+  67:servo.c       **** }
+  68:servo.c       **** 
+  69:servo.c       **** void SetServoPosition(unsigned char id, unsigned short int position, unsigned short int velocity)
+  70:servo.c       **** {
+ 141              		.loc 1 70 0
+ 142              		.cfi_startproc
+ 143              		@ args = 0, pretend = 0, frame = 0
+ 144              		@ frame_needed = 0, uses_anonymous_args = 0
+ 145              	.LVL23:
+ 146 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 147              		.cfi_def_cfa_offset 24
+ 148              		.cfi_offset 4, -24
+ 149              		.cfi_offset 5, -20
+ 150              		.cfi_offset 6, -16
+ 151              		.cfi_offset 7, -12
+ 152              		.cfi_offset 8, -8
+ 153              		.cfi_offset 14, -4
+ 154 0004 0446     		mov	r4, r0
+ 155              	.LVL24:
+  71:servo.c       ****     unsigned short int temp_velocity = 0; // 临时速度，用于进行方向判别 // (temp veloc
+  72:servo.c       ****     unsigned short int temp_position = 0;
+  73:servo.c       ****     unsigned char temp_velocity_h = 0; // 待发送数据h位 // (h bits to be sended)
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 5
+
+
+  74:servo.c       ****     unsigned char temp_velocity_l = 0; // 待发送数据l位 // (l bits to be sended)
+  75:servo.c       ****     unsigned char temp_position_h = 0;
+  76:servo.c       ****     unsigned char temp_position_l = 0;
+  77:servo.c       ****     unsigned char temp_sum = 0; // 校验和寄存变量 // (temp variable to save checksum)
+  78:servo.c       ****     if (velocity > 1023)
+ 156              		.loc 1 78 0
+ 157 0006 B2F5806F 		cmp	r2, #1024
+ 158 000a 01D3     		bcc	.L6
+  79:servo.c       ****     {
+  80:servo.c       ****         temp_velocity = 1023;
+ 159              		.loc 1 80 0
+ 160 000c 40F2FF32 		movw	r2, #1023
+ 161              	.LVL25:
+ 162              	.L6:
+  81:servo.c       ****         // 限制速度值在可用范围内 // (limit the velocity to 0-1023)
+  82:servo.c       ****     }
+  83:servo.c       ****     else
+  84:servo.c       ****     {
+  85:servo.c       ****         temp_velocity = velocity;
+  86:servo.c       ****     }
+  87:servo.c       ****     if (position > 1023)
+ 163              		.loc 1 87 0
+ 164 0010 B1F5806F 		cmp	r1, #1024
+ 165 0014 01D3     		bcc	.L7
+  88:servo.c       ****     {
+  89:servo.c       ****         temp_position = 1023;
+ 166              		.loc 1 89 0
+ 167 0016 40F2FF31 		movw	r1, #1023
+ 168              	.LVL26:
+ 169              	.L7:
+  90:servo.c       ****     }
+  91:servo.c       ****     else
+  92:servo.c       ****     {
+  93:servo.c       ****         temp_position = position;
+  94:servo.c       ****     }
+  95:servo.c       ****     temp_velocity_h = (unsigned char)(temp_velocity >> 8);
+ 170              		.loc 1 95 0
+ 171 001a 160A     		lsrs	r6, r2, #8
+ 172              	.LVL27:
+  96:servo.c       ****     temp_velocity_l = (unsigned char)temp_velocity; // 将16bit数据拆为2个8bit数据 // (split
+ 173              		.loc 1 96 0
+ 174 001c D5B2     		uxtb	r5, r2
+ 175              	.LVL28:
+  97:servo.c       ****     temp_position_h = (unsigned char)(temp_position >> 8);
+ 176              		.loc 1 97 0
+ 177 001e 4FEA1128 		lsr	r8, r1, #8
+ 178              	.LVL29:
+  98:servo.c       ****     temp_position_l = (unsigned char)temp_position; // 将16bit数据拆为2个8bit数据 // (split
+ 179              		.loc 1 98 0
+ 180 0022 CFB2     		uxtb	r7, r1
+ 181              	.LVL30:
+  99:servo.c       ****     // PORTA &= ~_BV(PA1);
+ 100:servo.c       ****     // PORTA |= _BV(PA0); // 使总线处于主机发送状态 // (Set the bus to host transmit sta
+ 101:servo.c       ****     // UCSR0A |= (1<<TXC0); // 清除UART0写完成标志 // (Clear written flag of UART0)
+ 102:servo.c       ****     UART_PutChar(0xFF);            // 发送启动符号0xFF // (Send the start byte 0xff)
+ 182              		.loc 1 102 0
+ 183 0024 FF20     		movs	r0, #255
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 6
+
+
+ 184              	.LVL31:
+ 185 0026 FFF7FEFF 		bl	UART_PutChar
+ 186              	.LVL32:
+ 103:servo.c       ****     UART_PutChar(0xFF);            // 发送启动符号0xFF // (Send the start byte 0xff)
+ 187              		.loc 1 103 0
+ 188 002a FF20     		movs	r0, #255
+ 189 002c FFF7FEFF 		bl	UART_PutChar
+ 190              	.LVL33:
+ 104:servo.c       ****     UART_PutChar(id);              // 发送id // (Send the servo’s ID)
+ 191              		.loc 1 104 0
+ 192 0030 2046     		mov	r0, r4
+ 193 0032 FFF7FEFF 		bl	UART_PutChar
+ 194              	.LVL34:
+ 105:servo.c       ****     UART_PutChar(7);               // 发送数据长度为参数长度+2，参数长度为3 // (Se
+ 195              		.loc 1 105 0
+ 196 0036 0720     		movs	r0, #7
+ 197 0038 FFF7FEFF 		bl	UART_PutChar
+ 198              	.LVL35:
+ 106:servo.c       ****     UART_PutChar(0x03);            // 命令数据为“WRITE DATA” // (Send command “WRITE DAT
+ 199              		.loc 1 106 0
+ 200 003c 0320     		movs	r0, #3
+ 201 003e FFF7FEFF 		bl	UART_PutChar
+ 202              	.LVL36:
+ 107:servo.c       ****     UART_PutChar(0x1E);            // 舵机控制寄存器首地址
+ 203              		.loc 1 107 0
+ 204 0042 1E20     		movs	r0, #30
+ 205 0044 FFF7FEFF 		bl	UART_PutChar
+ 206              	.LVL37:
+ 108:servo.c       ****     UART_PutChar(temp_position_l); // 发送顺时针位置限制低位 // (Send the low byte of cl
+ 207              		.loc 1 108 0
+ 208 0048 3846     		mov	r0, r7
+ 209 004a FFF7FEFF 		bl	UART_PutChar
+ 210              	.LVL38:
+ 109:servo.c       ****     UART_PutChar(temp_position_h); // 发送顺时针位置限制高位 //(Send the high byte of cl
+ 211              		.loc 1 109 0
+ 212 004e 4046     		mov	r0, r8
+ 213 0050 FFF7FEFF 		bl	UART_PutChar
+ 214              	.LVL39:
+ 110:servo.c       ****     UART_PutChar(temp_velocity_l); // 发送逆时针位置限制低位 // (Send the low byte of co
+ 215              		.loc 1 110 0
+ 216 0054 2846     		mov	r0, r5
+ 217 0056 FFF7FEFF 		bl	UART_PutChar
+ 218              	.LVL40:
+ 111:servo.c       ****     UART_PutChar(temp_velocity_h); // 发送逆时针位置限制高位 // (Send the low byte of co
+ 219              		.loc 1 111 0
+ 220 005a 3046     		mov	r0, r6
+ 221 005c FFF7FEFF 		bl	UART_PutChar
+ 222              	.LVL41:
+ 112:servo.c       ****     temp_sum = id + 7 + 0x03 + 0x1E + temp_position_l + temp_position_h + temp_velocity_l + temp_ve
+ 223              		.loc 1 112 0
+ 224 0060 3819     		adds	r0, r7, r4
+ 225 0062 4044     		add	r0, r0, r8
+ 226 0064 2844     		add	r0, r0, r5
+ 227 0066 3044     		add	r0, r0, r6
+ 228 0068 2830     		adds	r0, r0, #40
+ 229 006a C0B2     		uxtb	r0, r0
+ 230              	.LVL42:
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 7
+
+
+ 113:servo.c       ****     temp_sum = ~temp_sum;   // 计算校验和 // (Calculate the checksum)
+ 231              		.loc 1 113 0
+ 232 006c C043     		mvns	r0, r0
+ 233              	.LVL43:
+ 114:servo.c       ****     UART_PutChar(temp_sum); // 发送校验和 // (Send checksum)
+ 234              		.loc 1 114 0
+ 235 006e C0B2     		uxtb	r0, r0
+ 236 0070 FFF7FEFF 		bl	UART_PutChar
+ 237              	.LVL44:
+ 115:servo.c       ****     // while ( !( UCSR0A & (1<<TXC0)) ) ;
+ 116:servo.c       ****     // PORTA |= _BV(PA1);
+ 117:servo.c       ****     // PORTA &= ~_BV(PA0); // 使总线处于主机接收状态 // (Set the UART bus to host receiv
+ 118:servo.c       ****     CyDelay(WAITING_TIME); // 送完成后，总线会被从机占用，反馈应答数据，所以
+ 238              		.loc 1 118 0
+ 239 0074 0220     		movs	r0, #2
+ 240 0076 FFF7FEFF 		bl	CyDelay
+ 241              	.LVL45:
+ 242 007a BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 243              		.cfi_endproc
+ 244              	.LFE64:
+ 245              		.size	SetServoPosition, .-SetServoPosition
+ 246 007e 00BF     		.section	.text.SetServoVelocity,"ax",%progbits
+ 247              		.align	2
+ 248              		.global	SetServoVelocity
+ 249              		.thumb
+ 250              		.thumb_func
+ 251              		.type	SetServoVelocity, %function
+ 252              	SetServoVelocity:
+ 253              	.LFB65:
+ 119:servo.c       **** }
+ 120:servo.c       **** 
+ 121:servo.c       **** void SetServoVelocity(unsigned char id, signed short int velocity)
+ 122:servo.c       **** {
+ 254              		.loc 1 122 0
+ 255              		.cfi_startproc
+ 256              		@ args = 0, pretend = 0, frame = 0
+ 257              		@ frame_needed = 0, uses_anonymous_args = 0
+ 258              	.LVL46:
+ 259 0000 70B5     		push	{r4, r5, r6, lr}
+ 260              		.cfi_def_cfa_offset 16
+ 261              		.cfi_offset 4, -16
+ 262              		.cfi_offset 5, -12
+ 263              		.cfi_offset 6, -8
+ 264              		.cfi_offset 14, -4
+ 265 0002 0546     		mov	r5, r0
+ 266              	.LVL47:
+ 123:servo.c       ****     unsigned char temp_sign = 0;          // 临时符号，用于进行方向判别 // (temp varia
+ 124:servo.c       ****     unsigned short int temp_velocity = 0; // 临时速度，用于进行方向判别 // (temp veloc
+ 125:servo.c       ****     unsigned char temp_value_h = 0;       // 待发送数据h位 // (h bits to send)
+ 126:servo.c       ****     unsigned char temp_value_l = 0;       // 待发送数据l位 // (l bits to send)
+ 127:servo.c       ****     unsigned char temp_sum = 0;           // 校验和寄存变量 // (temp variable to save checks
+ 128:servo.c       ****     if (velocity < 0)
+ 267              		.loc 1 128 0
+ 268 0004 0029     		cmp	r1, #0
+ 269              	.LVL48:
+ 270 0006 03DA     		bge	.L10
+ 129:servo.c       ****     {
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 8
+
+
+ 130:servo.c       ****         temp_velocity = -velocity; // 如果为负数，则取绝对值 // (if negative, get the ab
+ 271              		.loc 1 130 0
+ 272 0008 4942     		negs	r1, r1
+ 273 000a 89B2     		uxth	r1, r1
+ 274              	.LVL49:
+ 131:servo.c       ****         temp_sign = 1;             // 设置负数符号标志 // (Set negative flag)
+ 275              		.loc 1 131 0
+ 276 000c 0124     		movs	r4, #1
+ 277 000e 01E0     		b	.L11
+ 278              	.LVL50:
+ 279              	.L10:
+ 132:servo.c       ****     }
+ 133:servo.c       ****     else
+ 134:servo.c       ****     {
+ 135:servo.c       ****         temp_velocity = velocity;
+ 280              		.loc 1 135 0
+ 281 0010 89B2     		uxth	r1, r1
+ 282              	.LVL51:
+ 136:servo.c       ****         temp_sign = 0; // 设置正数符号标志 // (Set positive flag)
+ 283              		.loc 1 136 0
+ 284 0012 0024     		movs	r4, #0
+ 285              	.LVL52:
+ 286              	.L11:
+ 137:servo.c       ****     }
+ 138:servo.c       ****     if (temp_velocity > 1023)
+ 287              		.loc 1 138 0
+ 288 0014 B1F5806F 		cmp	r1, #1024
+ 289 0018 01D3     		bcc	.L12
+ 139:servo.c       ****     {
+ 140:servo.c       ****         temp_velocity = 1023; // 限制速度值在可用范围内 // (Limit the velocity to 0-1023
+ 290              		.loc 1 140 0
+ 291 001a 40F2FF31 		movw	r1, #1023
+ 292              	.LVL53:
+ 293              	.L12:
+ 141:servo.c       ****     }                         // 设置bit10为方向位，这时temp_velocity就是待发送的速
+ 142:servo.c       ****     temp_velocity |= (temp_sign << 10);
+ 294              		.loc 1 142 0
+ 295 001e 41EA8424 		orr	r4, r1, r4, lsl #10
+ 296              	.LVL54:
+ 297 0022 24B2     		sxth	r4, r4
+ 298              	.LVL55:
+ 143:servo.c       ****     temp_value_h = (unsigned char)(temp_velocity >> 8); // 将16bit数据拆为2个8bit数据 // (S
+ 299              		.loc 1 143 0
+ 300 0024 C4F30726 		ubfx	r6, r4, #8, #8
+ 301              	.LVL56:
+ 144:servo.c       ****     temp_value_l = (unsigned char)temp_velocity;
+ 302              		.loc 1 144 0
+ 303 0028 E4B2     		uxtb	r4, r4
+ 304              	.LVL57:
+ 145:servo.c       ****     UART_PutChar(0xFF);         // 发送启动符号0xFF // (Send the start byte 0xFF)
+ 305              		.loc 1 145 0
+ 306 002a FF20     		movs	r0, #255
+ 307              	.LVL58:
+ 308 002c FFF7FEFF 		bl	UART_PutChar
+ 309              	.LVL59:
+ 146:servo.c       ****     UART_PutChar(0xFF);         // 发送启动符号0xFF // (Send the start byte 0xFF)
+ 310              		.loc 1 146 0
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 9
+
+
+ 311 0030 FF20     		movs	r0, #255
+ 312 0032 FFF7FEFF 		bl	UART_PutChar
+ 313              	.LVL60:
+ 147:servo.c       ****     UART_PutChar(id);           // 发送id // (Send the servo’s ID)
+ 314              		.loc 1 147 0
+ 315 0036 2846     		mov	r0, r5
+ 316 0038 FFF7FEFF 		bl	UART_PutChar
+ 317              	.LVL61:
+ 148:servo.c       ****     UART_PutChar(5);            // 发送数据长度为参数长度+2，参数长度为3 // (Send 
+ 318              		.loc 1 148 0
+ 319 003c 0520     		movs	r0, #5
+ 320 003e FFF7FEFF 		bl	UART_PutChar
+ 321              	.LVL62:
+ 149:servo.c       ****     UART_PutChar(0x03);         // 命令数据为“WRITE DATA” // (Send command “WRITE DATA�
+ 322              		.loc 1 149 0
+ 323 0042 0320     		movs	r0, #3
+ 324 0044 FFF7FEFF 		bl	UART_PutChar
+ 325              	.LVL63:
+ 150:servo.c       ****     UART_PutChar(0x20);         // 舵机控制寄存器首地址 // (Send the start address of con
+ 326              		.loc 1 150 0
+ 327 0048 2020     		movs	r0, #32
+ 328 004a FFF7FEFF 		bl	UART_PutChar
+ 329              	.LVL64:
+ 151:servo.c       ****     UART_PutChar(temp_value_l); // 发送速度数据低位 // (Send the low byte of velocity)
+ 330              		.loc 1 151 0
+ 331 004e 2046     		mov	r0, r4
+ 332 0050 FFF7FEFF 		bl	UART_PutChar
+ 333              	.LVL65:
+ 152:servo.c       ****     UART_PutChar(temp_value_h); // 发送速度数据高位 // (Send the high byte of velocity)
+ 334              		.loc 1 152 0
+ 335 0054 3046     		mov	r0, r6
+ 336 0056 FFF7FEFF 		bl	UART_PutChar
+ 337              	.LVL66:
+ 153:servo.c       ****     temp_sum = id + 5 + 0x03 + 0x20 + temp_value_l + temp_value_h;
+ 338              		.loc 1 153 0
+ 339 005a 6019     		adds	r0, r4, r5
+ 340 005c 3044     		add	r0, r0, r6
+ 341 005e 2830     		adds	r0, r0, #40
+ 342 0060 C0B2     		uxtb	r0, r0
+ 343              	.LVL67:
+ 154:servo.c       ****     temp_sum = ~temp_sum;    // 计算校验和 // (Calculate the checksum)
+ 344              		.loc 1 154 0
+ 345 0062 C043     		mvns	r0, r0
+ 346              	.LVL68:
+ 155:servo.c       ****     UART_PutChar(temp_sum); // 发送校验和 // (Send the checksum)
+ 347              		.loc 1 155 0
+ 348 0064 C0B2     		uxtb	r0, r0
+ 349 0066 FFF7FEFF 		bl	UART_PutChar
+ 350              	.LVL69:
+ 156:servo.c       ****     CyDelay(WAITING_TIME);
+ 351              		.loc 1 156 0
+ 352 006a 0220     		movs	r0, #2
+ 353 006c FFF7FEFF 		bl	CyDelay
+ 354              	.LVL70:
+ 355 0070 70BD     		pop	{r4, r5, r6, pc}
+ 356              		.cfi_endproc
+ 357              	.LFE65:
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 10
+
+
+ 358              		.size	SetServoVelocity, .-SetServoVelocity
+ 359 0072 00BF     		.text
+ 360              	.Letext0:
+ 361              		.file 2 "d:\\psoccreator4.2\\psoc creator\\4.2\\psoc creator\\import\\gnu\\arm\\5.4.1\\arm-none-ea
+ 362              		.file 3 "d:\\psoccreator4.2\\psoc creator\\4.2\\psoc creator\\import\\gnu\\arm\\5.4.1\\arm-none-ea
+ 363              		.file 4 "Generated_Source\\PSoC5/UART.h"
+ 364              		.file 5 "Generated_Source\\PSoC5/CyLib.h"
+ 365              		.file 6 "Generated_Source\\PSoC5/core_cm3.h"
+ 366              		.section	.debug_info,"",%progbits
+ 367              	.Ldebug_info0:
+ 368 0000 5D050000 		.4byte	0x55d
+ 369 0004 0400     		.2byte	0x4
+ 370 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 371 000a 04       		.byte	0x4
+ 372 000b 01       		.uleb128 0x1
+ 373 000c AE000000 		.4byte	.LASF41
+ 374 0010 0C       		.byte	0xc
+ 375 0011 C4010000 		.4byte	.LASF42
+ 376 0015 CC010000 		.4byte	.LASF43
+ 377 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 378 001d 00000000 		.4byte	0
+ 379 0021 00000000 		.4byte	.Ldebug_line0
+ 380 0025 02       		.uleb128 0x2
+ 381 0026 01       		.byte	0x1
+ 382 0027 06       		.byte	0x6
+ 383 0028 93020000 		.4byte	.LASF0
+ 384 002c 02       		.uleb128 0x2
+ 385 002d 01       		.byte	0x1
+ 386 002e 08       		.byte	0x8
+ 387 002f A0000000 		.4byte	.LASF1
+ 388 0033 02       		.uleb128 0x2
+ 389 0034 02       		.byte	0x2
+ 390 0035 05       		.byte	0x5
+ 391 0036 83010000 		.4byte	.LASF2
+ 392 003a 02       		.uleb128 0x2
+ 393 003b 02       		.byte	0x2
+ 394 003c 07       		.byte	0x7
+ 395 003d 5C010000 		.4byte	.LASF3
+ 396 0041 03       		.uleb128 0x3
+ 397 0042 43000000 		.4byte	.LASF9
+ 398 0046 02       		.byte	0x2
+ 399 0047 3F       		.byte	0x3f
+ 400 0048 4C000000 		.4byte	0x4c
+ 401 004c 02       		.uleb128 0x2
+ 402 004d 04       		.byte	0x4
+ 403 004e 05       		.byte	0x5
+ 404 004f 68020000 		.4byte	.LASF4
+ 405 0053 02       		.uleb128 0x2
+ 406 0054 04       		.byte	0x4
+ 407 0055 07       		.byte	0x7
+ 408 0056 4A010000 		.4byte	.LASF5
+ 409 005a 02       		.uleb128 0x2
+ 410 005b 08       		.byte	0x8
+ 411 005c 05       		.byte	0x5
+ 412 005d 2D020000 		.4byte	.LASF6
+ 413 0061 02       		.uleb128 0x2
+ 414 0062 08       		.byte	0x8
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 11
+
+
+ 415 0063 07       		.byte	0x7
+ 416 0064 79000000 		.4byte	.LASF7
+ 417 0068 04       		.uleb128 0x4
+ 418 0069 04       		.byte	0x4
+ 419 006a 05       		.byte	0x5
+ 420 006b 696E7400 		.ascii	"int\000"
+ 421 006f 02       		.uleb128 0x2
+ 422 0070 04       		.byte	0x4
+ 423 0071 07       		.byte	0x7
+ 424 0072 AD010000 		.4byte	.LASF8
+ 425 0076 03       		.uleb128 0x3
+ 426 0077 07020000 		.4byte	.LASF10
+ 427 007b 03       		.byte	0x3
+ 428 007c 2C       		.byte	0x2c
+ 429 007d 41000000 		.4byte	0x41
+ 430 0081 02       		.uleb128 0x2
+ 431 0082 04       		.byte	0x4
+ 432 0083 04       		.byte	0x4
+ 433 0084 73000000 		.4byte	.LASF11
+ 434 0088 02       		.uleb128 0x2
+ 435 0089 08       		.byte	0x8
+ 436 008a 04       		.byte	0x4
+ 437 008b 7C010000 		.4byte	.LASF12
+ 438 008f 02       		.uleb128 0x2
+ 439 0090 01       		.byte	0x1
+ 440 0091 08       		.byte	0x8
+ 441 0092 44020000 		.4byte	.LASF13
+ 442 0096 02       		.uleb128 0x2
+ 443 0097 08       		.byte	0x8
+ 444 0098 04       		.byte	0x4
+ 445 0099 87020000 		.4byte	.LASF14
+ 446 009d 02       		.uleb128 0x2
+ 447 009e 04       		.byte	0x4
+ 448 009f 07       		.byte	0x7
+ 449 00a0 3B020000 		.4byte	.LASF15
+ 450 00a4 05       		.uleb128 0x5
+ 451 00a5 3C010000 		.4byte	.LASF25
+ 452 00a9 01       		.byte	0x1
+ 453 00aa 11       		.byte	0x11
+ 454 00ab 00000000 		.4byte	.LFB63
+ 455 00af 7E000000 		.4byte	.LFE63-.LFB63
+ 456 00b3 01       		.uleb128 0x1
+ 457 00b4 9C       		.byte	0x9c
+ 458 00b5 49020000 		.4byte	0x249
+ 459 00b9 06       		.uleb128 0x6
+ 460 00ba 696400   		.ascii	"id\000"
+ 461 00bd 01       		.byte	0x1
+ 462 00be 11       		.byte	0x11
+ 463 00bf 2C000000 		.4byte	0x2c
+ 464 00c3 00000000 		.4byte	.LLST0
+ 465 00c7 07       		.uleb128 0x7
+ 466 00c8 C0020000 		.4byte	.LASF16
+ 467 00cc 01       		.byte	0x1
+ 468 00cd 11       		.byte	0x11
+ 469 00ce 3A000000 		.4byte	0x3a
+ 470 00d2 21000000 		.4byte	.LLST1
+ 471 00d6 07       		.uleb128 0x7
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 12
+
+
+ 472 00d7 BA010000 		.4byte	.LASF17
+ 473 00db 01       		.byte	0x1
+ 474 00dc 11       		.byte	0x11
+ 475 00dd 3A000000 		.4byte	0x3a
+ 476 00e1 42000000 		.4byte	.LLST2
+ 477 00e5 08       		.uleb128 0x8
+ 478 00e6 9F020000 		.4byte	.LASF18
+ 479 00ea 01       		.byte	0x1
+ 480 00eb 13       		.byte	0x13
+ 481 00ec 3A000000 		.4byte	0x3a
+ 482 00f0 63000000 		.4byte	.LLST3
+ 483 00f4 08       		.uleb128 0x8
+ 484 00f5 56020000 		.4byte	.LASF19
+ 485 00f9 01       		.byte	0x1
+ 486 00fa 14       		.byte	0x14
+ 487 00fb 3A000000 		.4byte	0x3a
+ 488 00ff 82000000 		.4byte	.LLST4
+ 489 0103 08       		.uleb128 0x8
+ 490 0104 4D000000 		.4byte	.LASF20
+ 491 0108 01       		.byte	0x1
+ 492 0109 15       		.byte	0x15
+ 493 010a 2C000000 		.4byte	0x2c
+ 494 010e A1000000 		.4byte	.LLST5
+ 495 0112 08       		.uleb128 0x8
+ 496 0113 58000000 		.4byte	.LASF21
+ 497 0117 01       		.byte	0x1
+ 498 0118 16       		.byte	0x16
+ 499 0119 2C000000 		.4byte	0x2c
+ 500 011d C0000000 		.4byte	.LLST6
+ 501 0121 08       		.uleb128 0x8
+ 502 0122 00000000 		.4byte	.LASF22
+ 503 0126 01       		.byte	0x1
+ 504 0127 17       		.byte	0x17
+ 505 0128 2C000000 		.4byte	0x2c
+ 506 012c DF000000 		.4byte	.LLST7
+ 507 0130 08       		.uleb128 0x8
+ 508 0131 1A000000 		.4byte	.LASF23
+ 509 0135 01       		.byte	0x1
+ 510 0136 18       		.byte	0x18
+ 511 0137 2C000000 		.4byte	0x2c
+ 512 013b FE000000 		.4byte	.LLST8
+ 513 013f 08       		.uleb128 0x8
+ 514 0140 71020000 		.4byte	.LASF24
+ 515 0144 01       		.byte	0x1
+ 516 0145 19       		.byte	0x19
+ 517 0146 2C000000 		.4byte	0x2c
+ 518 014a 1D010000 		.4byte	.LLST9
+ 519 014e 09       		.uleb128 0x9
+ 520 014f 2A000000 		.4byte	.LVL9
+ 521 0153 4A050000 		.4byte	0x54a
+ 522 0157 62010000 		.4byte	0x162
+ 523 015b 0A       		.uleb128 0xa
+ 524 015c 01       		.uleb128 0x1
+ 525 015d 50       		.byte	0x50
+ 526 015e 02       		.uleb128 0x2
+ 527 015f 09       		.byte	0x9
+ 528 0160 FF       		.byte	0xff
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 13
+
+
+ 529 0161 00       		.byte	0
+ 530 0162 09       		.uleb128 0x9
+ 531 0163 30000000 		.4byte	.LVL10
+ 532 0167 4A050000 		.4byte	0x54a
+ 533 016b 76010000 		.4byte	0x176
+ 534 016f 0A       		.uleb128 0xa
+ 535 0170 01       		.uleb128 0x1
+ 536 0171 50       		.byte	0x50
+ 537 0172 02       		.uleb128 0x2
+ 538 0173 09       		.byte	0x9
+ 539 0174 FF       		.byte	0xff
+ 540 0175 00       		.byte	0
+ 541 0176 09       		.uleb128 0x9
+ 542 0177 36000000 		.4byte	.LVL11
+ 543 017b 4A050000 		.4byte	0x54a
+ 544 017f 8A010000 		.4byte	0x18a
+ 545 0183 0A       		.uleb128 0xa
+ 546 0184 01       		.uleb128 0x1
+ 547 0185 50       		.byte	0x50
+ 548 0186 02       		.uleb128 0x2
+ 549 0187 74       		.byte	0x74
+ 550 0188 00       		.sleb128 0
+ 551 0189 00       		.byte	0
+ 552 018a 09       		.uleb128 0x9
+ 553 018b 3C000000 		.4byte	.LVL12
+ 554 018f 4A050000 		.4byte	0x54a
+ 555 0193 9D010000 		.4byte	0x19d
+ 556 0197 0A       		.uleb128 0xa
+ 557 0198 01       		.uleb128 0x1
+ 558 0199 50       		.byte	0x50
+ 559 019a 01       		.uleb128 0x1
+ 560 019b 37       		.byte	0x37
+ 561 019c 00       		.byte	0
+ 562 019d 09       		.uleb128 0x9
+ 563 019e 42000000 		.4byte	.LVL13
+ 564 01a2 4A050000 		.4byte	0x54a
+ 565 01a6 B0010000 		.4byte	0x1b0
+ 566 01aa 0A       		.uleb128 0xa
+ 567 01ab 01       		.uleb128 0x1
+ 568 01ac 50       		.byte	0x50
+ 569 01ad 01       		.uleb128 0x1
+ 570 01ae 33       		.byte	0x33
+ 571 01af 00       		.byte	0
+ 572 01b0 09       		.uleb128 0x9
+ 573 01b1 48000000 		.4byte	.LVL14
+ 574 01b5 4A050000 		.4byte	0x54a
+ 575 01b9 C3010000 		.4byte	0x1c3
+ 576 01bd 0A       		.uleb128 0xa
+ 577 01be 01       		.uleb128 0x1
+ 578 01bf 50       		.byte	0x50
+ 579 01c0 01       		.uleb128 0x1
+ 580 01c1 36       		.byte	0x36
+ 581 01c2 00       		.byte	0
+ 582 01c3 09       		.uleb128 0x9
+ 583 01c4 4E000000 		.4byte	.LVL15
+ 584 01c8 4A050000 		.4byte	0x54a
+ 585 01cc D7010000 		.4byte	0x1d7
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 14
+
+
+ 586 01d0 0A       		.uleb128 0xa
+ 587 01d1 01       		.uleb128 0x1
+ 588 01d2 50       		.byte	0x50
+ 589 01d3 02       		.uleb128 0x2
+ 590 01d4 77       		.byte	0x77
+ 591 01d5 00       		.sleb128 0
+ 592 01d6 00       		.byte	0
+ 593 01d7 09       		.uleb128 0x9
+ 594 01d8 54000000 		.4byte	.LVL16
+ 595 01dc 4A050000 		.4byte	0x54a
+ 596 01e0 EB010000 		.4byte	0x1eb
+ 597 01e4 0A       		.uleb128 0xa
+ 598 01e5 01       		.uleb128 0x1
+ 599 01e6 50       		.byte	0x50
+ 600 01e7 02       		.uleb128 0x2
+ 601 01e8 78       		.byte	0x78
+ 602 01e9 00       		.sleb128 0
+ 603 01ea 00       		.byte	0
+ 604 01eb 09       		.uleb128 0x9
+ 605 01ec 5A000000 		.4byte	.LVL17
+ 606 01f0 4A050000 		.4byte	0x54a
+ 607 01f4 FF010000 		.4byte	0x1ff
+ 608 01f8 0A       		.uleb128 0xa
+ 609 01f9 01       		.uleb128 0x1
+ 610 01fa 50       		.byte	0x50
+ 611 01fb 02       		.uleb128 0x2
+ 612 01fc 75       		.byte	0x75
+ 613 01fd 00       		.sleb128 0
+ 614 01fe 00       		.byte	0
+ 615 01ff 09       		.uleb128 0x9
+ 616 0200 60000000 		.4byte	.LVL18
+ 617 0204 4A050000 		.4byte	0x54a
+ 618 0208 13020000 		.4byte	0x213
+ 619 020c 0A       		.uleb128 0xa
+ 620 020d 01       		.uleb128 0x1
+ 621 020e 50       		.byte	0x50
+ 622 020f 02       		.uleb128 0x2
+ 623 0210 76       		.byte	0x76
+ 624 0211 00       		.sleb128 0
+ 625 0212 00       		.byte	0
+ 626 0213 09       		.uleb128 0x9
+ 627 0214 74000000 		.4byte	.LVL21
+ 628 0218 4A050000 		.4byte	0x54a
+ 629 021c 39020000 		.4byte	0x239
+ 630 0220 0A       		.uleb128 0xa
+ 631 0221 01       		.uleb128 0x1
+ 632 0222 50       		.byte	0x50
+ 633 0223 14       		.uleb128 0x14
+ 634 0224 74       		.byte	0x74
+ 635 0225 00       		.sleb128 0
+ 636 0226 75       		.byte	0x75
+ 637 0227 00       		.sleb128 0
+ 638 0228 22       		.byte	0x22
+ 639 0229 76       		.byte	0x76
+ 640 022a 00       		.sleb128 0
+ 641 022b 22       		.byte	0x22
+ 642 022c 77       		.byte	0x77
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 15
+
+
+ 643 022d 00       		.sleb128 0
+ 644 022e 22       		.byte	0x22
+ 645 022f 78       		.byte	0x78
+ 646 0230 00       		.sleb128 0
+ 647 0231 22       		.byte	0x22
+ 648 0232 23       		.byte	0x23
+ 649 0233 10       		.uleb128 0x10
+ 650 0234 08       		.byte	0x8
+ 651 0235 FF       		.byte	0xff
+ 652 0236 1A       		.byte	0x1a
+ 653 0237 20       		.byte	0x20
+ 654 0238 00       		.byte	0
+ 655 0239 0B       		.uleb128 0xb
+ 656 023a 7A000000 		.4byte	.LVL22
+ 657 023e 55050000 		.4byte	0x555
+ 658 0242 0A       		.uleb128 0xa
+ 659 0243 01       		.uleb128 0x1
+ 660 0244 50       		.byte	0x50
+ 661 0245 01       		.uleb128 0x1
+ 662 0246 32       		.byte	0x32
+ 663 0247 00       		.byte	0
+ 664 0248 00       		.byte	0
+ 665 0249 05       		.uleb128 0x5
+ 666 024a 1C020000 		.4byte	.LASF26
+ 667 024e 01       		.byte	0x1
+ 668 024f 45       		.byte	0x45
+ 669 0250 00000000 		.4byte	.LFB64
+ 670 0254 7E000000 		.4byte	.LFE64-.LFB64
+ 671 0258 01       		.uleb128 0x1
+ 672 0259 9C       		.byte	0x9c
+ 673 025a EE030000 		.4byte	0x3ee
+ 674 025e 06       		.uleb128 0x6
+ 675 025f 696400   		.ascii	"id\000"
+ 676 0262 01       		.byte	0x1
+ 677 0263 45       		.byte	0x45
+ 678 0264 2C000000 		.4byte	0x2c
+ 679 0268 5B010000 		.4byte	.LLST10
+ 680 026c 07       		.uleb128 0x7
+ 681 026d A4010000 		.4byte	.LASF27
+ 682 0271 01       		.byte	0x1
+ 683 0272 45       		.byte	0x45
+ 684 0273 3A000000 		.4byte	0x3a
+ 685 0277 7C010000 		.4byte	.LLST11
+ 686 027b 07       		.uleb128 0x7
+ 687 027c 9B010000 		.4byte	.LASF28
+ 688 0280 01       		.byte	0x1
+ 689 0281 45       		.byte	0x45
+ 690 0282 3A000000 		.4byte	0x3a
+ 691 0286 9D010000 		.4byte	.LLST12
+ 692 028a 08       		.uleb128 0x8
+ 693 028b 35000000 		.4byte	.LASF29
+ 694 028f 01       		.byte	0x1
+ 695 0290 47       		.byte	0x47
+ 696 0291 3A000000 		.4byte	0x3a
+ 697 0295 BE010000 		.4byte	.LLST13
+ 698 0299 08       		.uleb128 0x8
+ 699 029a 8D010000 		.4byte	.LASF30
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 16
+
+
+ 700 029e 01       		.byte	0x1
+ 701 029f 48       		.byte	0x48
+ 702 02a0 3A000000 		.4byte	0x3a
+ 703 02a4 DD010000 		.4byte	.LLST14
+ 704 02a8 08       		.uleb128 0x8
+ 705 02a9 B0020000 		.4byte	.LASF31
+ 706 02ad 01       		.byte	0x1
+ 707 02ae 49       		.byte	0x49
+ 708 02af 2C000000 		.4byte	0x2c
+ 709 02b3 FC010000 		.4byte	.LLST15
+ 710 02b7 08       		.uleb128 0x8
+ 711 02b8 0A000000 		.4byte	.LASF32
+ 712 02bc 01       		.byte	0x1
+ 713 02bd 4A       		.byte	0x4a
+ 714 02be 2C000000 		.4byte	0x2c
+ 715 02c2 1B020000 		.4byte	.LLST16
+ 716 02c6 08       		.uleb128 0x8
+ 717 02c7 63000000 		.4byte	.LASF33
+ 718 02cb 01       		.byte	0x1
+ 719 02cc 4B       		.byte	0x4b
+ 720 02cd 2C000000 		.4byte	0x2c
+ 721 02d1 3A020000 		.4byte	.LLST17
+ 722 02d5 08       		.uleb128 0x8
+ 723 02d6 90000000 		.4byte	.LASF34
+ 724 02da 01       		.byte	0x1
+ 725 02db 4C       		.byte	0x4c
+ 726 02dc 2C000000 		.4byte	0x2c
+ 727 02e0 59020000 		.4byte	.LLST18
+ 728 02e4 08       		.uleb128 0x8
+ 729 02e5 71020000 		.4byte	.LASF24
+ 730 02e9 01       		.byte	0x1
+ 731 02ea 4D       		.byte	0x4d
+ 732 02eb 2C000000 		.4byte	0x2c
+ 733 02ef 78020000 		.4byte	.LLST19
+ 734 02f3 09       		.uleb128 0x9
+ 735 02f4 2A000000 		.4byte	.LVL32
+ 736 02f8 4A050000 		.4byte	0x54a
+ 737 02fc 07030000 		.4byte	0x307
+ 738 0300 0A       		.uleb128 0xa
+ 739 0301 01       		.uleb128 0x1
+ 740 0302 50       		.byte	0x50
+ 741 0303 02       		.uleb128 0x2
+ 742 0304 09       		.byte	0x9
+ 743 0305 FF       		.byte	0xff
+ 744 0306 00       		.byte	0
+ 745 0307 09       		.uleb128 0x9
+ 746 0308 30000000 		.4byte	.LVL33
+ 747 030c 4A050000 		.4byte	0x54a
+ 748 0310 1B030000 		.4byte	0x31b
+ 749 0314 0A       		.uleb128 0xa
+ 750 0315 01       		.uleb128 0x1
+ 751 0316 50       		.byte	0x50
+ 752 0317 02       		.uleb128 0x2
+ 753 0318 09       		.byte	0x9
+ 754 0319 FF       		.byte	0xff
+ 755 031a 00       		.byte	0
+ 756 031b 09       		.uleb128 0x9
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 17
+
+
+ 757 031c 36000000 		.4byte	.LVL34
+ 758 0320 4A050000 		.4byte	0x54a
+ 759 0324 2F030000 		.4byte	0x32f
+ 760 0328 0A       		.uleb128 0xa
+ 761 0329 01       		.uleb128 0x1
+ 762 032a 50       		.byte	0x50
+ 763 032b 02       		.uleb128 0x2
+ 764 032c 74       		.byte	0x74
+ 765 032d 00       		.sleb128 0
+ 766 032e 00       		.byte	0
+ 767 032f 09       		.uleb128 0x9
+ 768 0330 3C000000 		.4byte	.LVL35
+ 769 0334 4A050000 		.4byte	0x54a
+ 770 0338 42030000 		.4byte	0x342
+ 771 033c 0A       		.uleb128 0xa
+ 772 033d 01       		.uleb128 0x1
+ 773 033e 50       		.byte	0x50
+ 774 033f 01       		.uleb128 0x1
+ 775 0340 37       		.byte	0x37
+ 776 0341 00       		.byte	0
+ 777 0342 09       		.uleb128 0x9
+ 778 0343 42000000 		.4byte	.LVL36
+ 779 0347 4A050000 		.4byte	0x54a
+ 780 034b 55030000 		.4byte	0x355
+ 781 034f 0A       		.uleb128 0xa
+ 782 0350 01       		.uleb128 0x1
+ 783 0351 50       		.byte	0x50
+ 784 0352 01       		.uleb128 0x1
+ 785 0353 33       		.byte	0x33
+ 786 0354 00       		.byte	0
+ 787 0355 09       		.uleb128 0x9
+ 788 0356 48000000 		.4byte	.LVL37
+ 789 035a 4A050000 		.4byte	0x54a
+ 790 035e 68030000 		.4byte	0x368
+ 791 0362 0A       		.uleb128 0xa
+ 792 0363 01       		.uleb128 0x1
+ 793 0364 50       		.byte	0x50
+ 794 0365 01       		.uleb128 0x1
+ 795 0366 4E       		.byte	0x4e
+ 796 0367 00       		.byte	0
+ 797 0368 09       		.uleb128 0x9
+ 798 0369 4E000000 		.4byte	.LVL38
+ 799 036d 4A050000 		.4byte	0x54a
+ 800 0371 7C030000 		.4byte	0x37c
+ 801 0375 0A       		.uleb128 0xa
+ 802 0376 01       		.uleb128 0x1
+ 803 0377 50       		.byte	0x50
+ 804 0378 02       		.uleb128 0x2
+ 805 0379 77       		.byte	0x77
+ 806 037a 00       		.sleb128 0
+ 807 037b 00       		.byte	0
+ 808 037c 09       		.uleb128 0x9
+ 809 037d 54000000 		.4byte	.LVL39
+ 810 0381 4A050000 		.4byte	0x54a
+ 811 0385 90030000 		.4byte	0x390
+ 812 0389 0A       		.uleb128 0xa
+ 813 038a 01       		.uleb128 0x1
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 18
+
+
+ 814 038b 50       		.byte	0x50
+ 815 038c 02       		.uleb128 0x2
+ 816 038d 78       		.byte	0x78
+ 817 038e 00       		.sleb128 0
+ 818 038f 00       		.byte	0
+ 819 0390 09       		.uleb128 0x9
+ 820 0391 5A000000 		.4byte	.LVL40
+ 821 0395 4A050000 		.4byte	0x54a
+ 822 0399 A4030000 		.4byte	0x3a4
+ 823 039d 0A       		.uleb128 0xa
+ 824 039e 01       		.uleb128 0x1
+ 825 039f 50       		.byte	0x50
+ 826 03a0 02       		.uleb128 0x2
+ 827 03a1 75       		.byte	0x75
+ 828 03a2 00       		.sleb128 0
+ 829 03a3 00       		.byte	0
+ 830 03a4 09       		.uleb128 0x9
+ 831 03a5 60000000 		.4byte	.LVL41
+ 832 03a9 4A050000 		.4byte	0x54a
+ 833 03ad B8030000 		.4byte	0x3b8
+ 834 03b1 0A       		.uleb128 0xa
+ 835 03b2 01       		.uleb128 0x1
+ 836 03b3 50       		.byte	0x50
+ 837 03b4 02       		.uleb128 0x2
+ 838 03b5 76       		.byte	0x76
+ 839 03b6 00       		.sleb128 0
+ 840 03b7 00       		.byte	0
+ 841 03b8 09       		.uleb128 0x9
+ 842 03b9 74000000 		.4byte	.LVL44
+ 843 03bd 4A050000 		.4byte	0x54a
+ 844 03c1 DE030000 		.4byte	0x3de
+ 845 03c5 0A       		.uleb128 0xa
+ 846 03c6 01       		.uleb128 0x1
+ 847 03c7 50       		.byte	0x50
+ 848 03c8 14       		.uleb128 0x14
+ 849 03c9 74       		.byte	0x74
+ 850 03ca 00       		.sleb128 0
+ 851 03cb 75       		.byte	0x75
+ 852 03cc 00       		.sleb128 0
+ 853 03cd 22       		.byte	0x22
+ 854 03ce 76       		.byte	0x76
+ 855 03cf 00       		.sleb128 0
+ 856 03d0 22       		.byte	0x22
+ 857 03d1 77       		.byte	0x77
+ 858 03d2 00       		.sleb128 0
+ 859 03d3 22       		.byte	0x22
+ 860 03d4 78       		.byte	0x78
+ 861 03d5 00       		.sleb128 0
+ 862 03d6 22       		.byte	0x22
+ 863 03d7 23       		.byte	0x23
+ 864 03d8 28       		.uleb128 0x28
+ 865 03d9 08       		.byte	0x8
+ 866 03da FF       		.byte	0xff
+ 867 03db 1A       		.byte	0x1a
+ 868 03dc 20       		.byte	0x20
+ 869 03dd 00       		.byte	0
+ 870 03de 0B       		.uleb128 0xb
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 19
+
+
+ 871 03df 7A000000 		.4byte	.LVL45
+ 872 03e3 55050000 		.4byte	0x555
+ 873 03e7 0A       		.uleb128 0xa
+ 874 03e8 01       		.uleb128 0x1
+ 875 03e9 50       		.byte	0x50
+ 876 03ea 01       		.uleb128 0x1
+ 877 03eb 32       		.byte	0x32
+ 878 03ec 00       		.byte	0
+ 879 03ed 00       		.byte	0
+ 880 03ee 05       		.uleb128 0x5
+ 881 03ef 24000000 		.4byte	.LASF35
+ 882 03f3 01       		.byte	0x1
+ 883 03f4 79       		.byte	0x79
+ 884 03f5 00000000 		.4byte	.LFB65
+ 885 03f9 72000000 		.4byte	.LFE65-.LFB65
+ 886 03fd 01       		.uleb128 0x1
+ 887 03fe 9C       		.byte	0x9c
+ 888 03ff 39050000 		.4byte	0x539
+ 889 0403 06       		.uleb128 0x6
+ 890 0404 696400   		.ascii	"id\000"
+ 891 0407 01       		.byte	0x1
+ 892 0408 79       		.byte	0x79
+ 893 0409 2C000000 		.4byte	0x2c
+ 894 040d B6020000 		.4byte	.LLST20
+ 895 0411 07       		.uleb128 0x7
+ 896 0412 9B010000 		.4byte	.LASF28
+ 897 0416 01       		.byte	0x1
+ 898 0417 79       		.byte	0x79
+ 899 0418 33000000 		.4byte	0x33
+ 900 041c D7020000 		.4byte	.LLST21
+ 901 0420 08       		.uleb128 0x8
+ 902 0421 5E020000 		.4byte	.LASF36
+ 903 0425 01       		.byte	0x1
+ 904 0426 7B       		.byte	0x7b
+ 905 0427 2C000000 		.4byte	0x2c
+ 906 042b F8020000 		.4byte	.LLST22
+ 907 042f 08       		.uleb128 0x8
+ 908 0430 35000000 		.4byte	.LASF29
+ 909 0434 01       		.byte	0x1
+ 910 0435 7C       		.byte	0x7c
+ 911 0436 3A000000 		.4byte	0x3a
+ 912 043a 2F030000 		.4byte	.LLST23
+ 913 043e 08       		.uleb128 0x8
+ 914 043f 7A020000 		.4byte	.LASF37
+ 915 0443 01       		.byte	0x1
+ 916 0444 7D       		.byte	0x7d
+ 917 0445 2C000000 		.4byte	0x2c
+ 918 0449 70030000 		.4byte	.LLST24
+ 919 044d 08       		.uleb128 0x8
+ 920 044e 49020000 		.4byte	.LASF38
+ 921 0452 01       		.byte	0x1
+ 922 0453 7E       		.byte	0x7e
+ 923 0454 2C000000 		.4byte	0x2c
+ 924 0458 8F030000 		.4byte	.LLST25
+ 925 045c 08       		.uleb128 0x8
+ 926 045d 71020000 		.4byte	.LASF24
+ 927 0461 01       		.byte	0x1
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 20
+
+
+ 928 0462 7F       		.byte	0x7f
+ 929 0463 2C000000 		.4byte	0x2c
+ 930 0467 AE030000 		.4byte	.LLST26
+ 931 046b 09       		.uleb128 0x9
+ 932 046c 30000000 		.4byte	.LVL59
+ 933 0470 4A050000 		.4byte	0x54a
+ 934 0474 7F040000 		.4byte	0x47f
+ 935 0478 0A       		.uleb128 0xa
+ 936 0479 01       		.uleb128 0x1
+ 937 047a 50       		.byte	0x50
+ 938 047b 02       		.uleb128 0x2
+ 939 047c 09       		.byte	0x9
+ 940 047d FF       		.byte	0xff
+ 941 047e 00       		.byte	0
+ 942 047f 09       		.uleb128 0x9
+ 943 0480 36000000 		.4byte	.LVL60
+ 944 0484 4A050000 		.4byte	0x54a
+ 945 0488 93040000 		.4byte	0x493
+ 946 048c 0A       		.uleb128 0xa
+ 947 048d 01       		.uleb128 0x1
+ 948 048e 50       		.byte	0x50
+ 949 048f 02       		.uleb128 0x2
+ 950 0490 09       		.byte	0x9
+ 951 0491 FF       		.byte	0xff
+ 952 0492 00       		.byte	0
+ 953 0493 09       		.uleb128 0x9
+ 954 0494 3C000000 		.4byte	.LVL61
+ 955 0498 4A050000 		.4byte	0x54a
+ 956 049c A7040000 		.4byte	0x4a7
+ 957 04a0 0A       		.uleb128 0xa
+ 958 04a1 01       		.uleb128 0x1
+ 959 04a2 50       		.byte	0x50
+ 960 04a3 02       		.uleb128 0x2
+ 961 04a4 75       		.byte	0x75
+ 962 04a5 00       		.sleb128 0
+ 963 04a6 00       		.byte	0
+ 964 04a7 09       		.uleb128 0x9
+ 965 04a8 42000000 		.4byte	.LVL62
+ 966 04ac 4A050000 		.4byte	0x54a
+ 967 04b0 BA040000 		.4byte	0x4ba
+ 968 04b4 0A       		.uleb128 0xa
+ 969 04b5 01       		.uleb128 0x1
+ 970 04b6 50       		.byte	0x50
+ 971 04b7 01       		.uleb128 0x1
+ 972 04b8 35       		.byte	0x35
+ 973 04b9 00       		.byte	0
+ 974 04ba 09       		.uleb128 0x9
+ 975 04bb 48000000 		.4byte	.LVL63
+ 976 04bf 4A050000 		.4byte	0x54a
+ 977 04c3 CD040000 		.4byte	0x4cd
+ 978 04c7 0A       		.uleb128 0xa
+ 979 04c8 01       		.uleb128 0x1
+ 980 04c9 50       		.byte	0x50
+ 981 04ca 01       		.uleb128 0x1
+ 982 04cb 33       		.byte	0x33
+ 983 04cc 00       		.byte	0
+ 984 04cd 09       		.uleb128 0x9
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 21
+
+
+ 985 04ce 4E000000 		.4byte	.LVL64
+ 986 04d2 4A050000 		.4byte	0x54a
+ 987 04d6 E1040000 		.4byte	0x4e1
+ 988 04da 0A       		.uleb128 0xa
+ 989 04db 01       		.uleb128 0x1
+ 990 04dc 50       		.byte	0x50
+ 991 04dd 02       		.uleb128 0x2
+ 992 04de 08       		.byte	0x8
+ 993 04df 20       		.byte	0x20
+ 994 04e0 00       		.byte	0
+ 995 04e1 09       		.uleb128 0x9
+ 996 04e2 54000000 		.4byte	.LVL65
+ 997 04e6 4A050000 		.4byte	0x54a
+ 998 04ea F5040000 		.4byte	0x4f5
+ 999 04ee 0A       		.uleb128 0xa
+ 1000 04ef 01       		.uleb128 0x1
+ 1001 04f0 50       		.byte	0x50
+ 1002 04f1 02       		.uleb128 0x2
+ 1003 04f2 74       		.byte	0x74
+ 1004 04f3 00       		.sleb128 0
+ 1005 04f4 00       		.byte	0
+ 1006 04f5 09       		.uleb128 0x9
+ 1007 04f6 5A000000 		.4byte	.LVL66
+ 1008 04fa 4A050000 		.4byte	0x54a
+ 1009 04fe 09050000 		.4byte	0x509
+ 1010 0502 0A       		.uleb128 0xa
+ 1011 0503 01       		.uleb128 0x1
+ 1012 0504 50       		.byte	0x50
+ 1013 0505 02       		.uleb128 0x2
+ 1014 0506 76       		.byte	0x76
+ 1015 0507 00       		.sleb128 0
+ 1016 0508 00       		.byte	0
+ 1017 0509 09       		.uleb128 0x9
+ 1018 050a 6A000000 		.4byte	.LVL69
+ 1019 050e 4A050000 		.4byte	0x54a
+ 1020 0512 29050000 		.4byte	0x529
+ 1021 0516 0A       		.uleb128 0xa
+ 1022 0517 01       		.uleb128 0x1
+ 1023 0518 50       		.byte	0x50
+ 1024 0519 0E       		.uleb128 0xe
+ 1025 051a 74       		.byte	0x74
+ 1026 051b 00       		.sleb128 0
+ 1027 051c 75       		.byte	0x75
+ 1028 051d 00       		.sleb128 0
+ 1029 051e 22       		.byte	0x22
+ 1030 051f 76       		.byte	0x76
+ 1031 0520 00       		.sleb128 0
+ 1032 0521 22       		.byte	0x22
+ 1033 0522 23       		.byte	0x23
+ 1034 0523 28       		.uleb128 0x28
+ 1035 0524 08       		.byte	0x8
+ 1036 0525 FF       		.byte	0xff
+ 1037 0526 1A       		.byte	0x1a
+ 1038 0527 20       		.byte	0x20
+ 1039 0528 00       		.byte	0
+ 1040 0529 0B       		.uleb128 0xb
+ 1041 052a 70000000 		.4byte	.LVL70
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 22
+
+
+ 1042 052e 55050000 		.4byte	0x555
+ 1043 0532 0A       		.uleb128 0xa
+ 1044 0533 01       		.uleb128 0x1
+ 1045 0534 50       		.byte	0x50
+ 1046 0535 01       		.uleb128 0x1
+ 1047 0536 32       		.byte	0x32
+ 1048 0537 00       		.byte	0
+ 1049 0538 00       		.byte	0
+ 1050 0539 0C       		.uleb128 0xc
+ 1051 053a 6F010000 		.4byte	.LASF44
+ 1052 053e 06       		.byte	0x6
+ 1053 053f 1207     		.2byte	0x712
+ 1054 0541 45050000 		.4byte	0x545
+ 1055 0545 0D       		.uleb128 0xd
+ 1056 0546 76000000 		.4byte	0x76
+ 1057 054a 0E       		.uleb128 0xe
+ 1058 054b 0F020000 		.4byte	.LASF39
+ 1059 054f 0F020000 		.4byte	.LASF39
+ 1060 0553 04       		.byte	0x4
+ 1061 0554 8A       		.byte	0x8a
+ 1062 0555 0E       		.uleb128 0xe
+ 1063 0556 A8020000 		.4byte	.LASF40
+ 1064 055a A8020000 		.4byte	.LASF40
+ 1065 055e 05       		.byte	0x5
+ 1066 055f 76       		.byte	0x76
+ 1067 0560 00       		.byte	0
+ 1068              		.section	.debug_abbrev,"",%progbits
+ 1069              	.Ldebug_abbrev0:
+ 1070 0000 01       		.uleb128 0x1
+ 1071 0001 11       		.uleb128 0x11
+ 1072 0002 01       		.byte	0x1
+ 1073 0003 25       		.uleb128 0x25
+ 1074 0004 0E       		.uleb128 0xe
+ 1075 0005 13       		.uleb128 0x13
+ 1076 0006 0B       		.uleb128 0xb
+ 1077 0007 03       		.uleb128 0x3
+ 1078 0008 0E       		.uleb128 0xe
+ 1079 0009 1B       		.uleb128 0x1b
+ 1080 000a 0E       		.uleb128 0xe
+ 1081 000b 55       		.uleb128 0x55
+ 1082 000c 17       		.uleb128 0x17
+ 1083 000d 11       		.uleb128 0x11
+ 1084 000e 01       		.uleb128 0x1
+ 1085 000f 10       		.uleb128 0x10
+ 1086 0010 17       		.uleb128 0x17
+ 1087 0011 00       		.byte	0
+ 1088 0012 00       		.byte	0
+ 1089 0013 02       		.uleb128 0x2
+ 1090 0014 24       		.uleb128 0x24
+ 1091 0015 00       		.byte	0
+ 1092 0016 0B       		.uleb128 0xb
+ 1093 0017 0B       		.uleb128 0xb
+ 1094 0018 3E       		.uleb128 0x3e
+ 1095 0019 0B       		.uleb128 0xb
+ 1096 001a 03       		.uleb128 0x3
+ 1097 001b 0E       		.uleb128 0xe
+ 1098 001c 00       		.byte	0
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 23
+
+
+ 1099 001d 00       		.byte	0
+ 1100 001e 03       		.uleb128 0x3
+ 1101 001f 16       		.uleb128 0x16
+ 1102 0020 00       		.byte	0
+ 1103 0021 03       		.uleb128 0x3
+ 1104 0022 0E       		.uleb128 0xe
+ 1105 0023 3A       		.uleb128 0x3a
+ 1106 0024 0B       		.uleb128 0xb
+ 1107 0025 3B       		.uleb128 0x3b
+ 1108 0026 0B       		.uleb128 0xb
+ 1109 0027 49       		.uleb128 0x49
+ 1110 0028 13       		.uleb128 0x13
+ 1111 0029 00       		.byte	0
+ 1112 002a 00       		.byte	0
+ 1113 002b 04       		.uleb128 0x4
+ 1114 002c 24       		.uleb128 0x24
+ 1115 002d 00       		.byte	0
+ 1116 002e 0B       		.uleb128 0xb
+ 1117 002f 0B       		.uleb128 0xb
+ 1118 0030 3E       		.uleb128 0x3e
+ 1119 0031 0B       		.uleb128 0xb
+ 1120 0032 03       		.uleb128 0x3
+ 1121 0033 08       		.uleb128 0x8
+ 1122 0034 00       		.byte	0
+ 1123 0035 00       		.byte	0
+ 1124 0036 05       		.uleb128 0x5
+ 1125 0037 2E       		.uleb128 0x2e
+ 1126 0038 01       		.byte	0x1
+ 1127 0039 3F       		.uleb128 0x3f
+ 1128 003a 19       		.uleb128 0x19
+ 1129 003b 03       		.uleb128 0x3
+ 1130 003c 0E       		.uleb128 0xe
+ 1131 003d 3A       		.uleb128 0x3a
+ 1132 003e 0B       		.uleb128 0xb
+ 1133 003f 3B       		.uleb128 0x3b
+ 1134 0040 0B       		.uleb128 0xb
+ 1135 0041 27       		.uleb128 0x27
+ 1136 0042 19       		.uleb128 0x19
+ 1137 0043 11       		.uleb128 0x11
+ 1138 0044 01       		.uleb128 0x1
+ 1139 0045 12       		.uleb128 0x12
+ 1140 0046 06       		.uleb128 0x6
+ 1141 0047 40       		.uleb128 0x40
+ 1142 0048 18       		.uleb128 0x18
+ 1143 0049 9742     		.uleb128 0x2117
+ 1144 004b 19       		.uleb128 0x19
+ 1145 004c 01       		.uleb128 0x1
+ 1146 004d 13       		.uleb128 0x13
+ 1147 004e 00       		.byte	0
+ 1148 004f 00       		.byte	0
+ 1149 0050 06       		.uleb128 0x6
+ 1150 0051 05       		.uleb128 0x5
+ 1151 0052 00       		.byte	0
+ 1152 0053 03       		.uleb128 0x3
+ 1153 0054 08       		.uleb128 0x8
+ 1154 0055 3A       		.uleb128 0x3a
+ 1155 0056 0B       		.uleb128 0xb
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 24
+
+
+ 1156 0057 3B       		.uleb128 0x3b
+ 1157 0058 0B       		.uleb128 0xb
+ 1158 0059 49       		.uleb128 0x49
+ 1159 005a 13       		.uleb128 0x13
+ 1160 005b 02       		.uleb128 0x2
+ 1161 005c 17       		.uleb128 0x17
+ 1162 005d 00       		.byte	0
+ 1163 005e 00       		.byte	0
+ 1164 005f 07       		.uleb128 0x7
+ 1165 0060 05       		.uleb128 0x5
+ 1166 0061 00       		.byte	0
+ 1167 0062 03       		.uleb128 0x3
+ 1168 0063 0E       		.uleb128 0xe
+ 1169 0064 3A       		.uleb128 0x3a
+ 1170 0065 0B       		.uleb128 0xb
+ 1171 0066 3B       		.uleb128 0x3b
+ 1172 0067 0B       		.uleb128 0xb
+ 1173 0068 49       		.uleb128 0x49
+ 1174 0069 13       		.uleb128 0x13
+ 1175 006a 02       		.uleb128 0x2
+ 1176 006b 17       		.uleb128 0x17
+ 1177 006c 00       		.byte	0
+ 1178 006d 00       		.byte	0
+ 1179 006e 08       		.uleb128 0x8
+ 1180 006f 34       		.uleb128 0x34
+ 1181 0070 00       		.byte	0
+ 1182 0071 03       		.uleb128 0x3
+ 1183 0072 0E       		.uleb128 0xe
+ 1184 0073 3A       		.uleb128 0x3a
+ 1185 0074 0B       		.uleb128 0xb
+ 1186 0075 3B       		.uleb128 0x3b
+ 1187 0076 0B       		.uleb128 0xb
+ 1188 0077 49       		.uleb128 0x49
+ 1189 0078 13       		.uleb128 0x13
+ 1190 0079 02       		.uleb128 0x2
+ 1191 007a 17       		.uleb128 0x17
+ 1192 007b 00       		.byte	0
+ 1193 007c 00       		.byte	0
+ 1194 007d 09       		.uleb128 0x9
+ 1195 007e 898201   		.uleb128 0x4109
+ 1196 0081 01       		.byte	0x1
+ 1197 0082 11       		.uleb128 0x11
+ 1198 0083 01       		.uleb128 0x1
+ 1199 0084 31       		.uleb128 0x31
+ 1200 0085 13       		.uleb128 0x13
+ 1201 0086 01       		.uleb128 0x1
+ 1202 0087 13       		.uleb128 0x13
+ 1203 0088 00       		.byte	0
+ 1204 0089 00       		.byte	0
+ 1205 008a 0A       		.uleb128 0xa
+ 1206 008b 8A8201   		.uleb128 0x410a
+ 1207 008e 00       		.byte	0
+ 1208 008f 02       		.uleb128 0x2
+ 1209 0090 18       		.uleb128 0x18
+ 1210 0091 9142     		.uleb128 0x2111
+ 1211 0093 18       		.uleb128 0x18
+ 1212 0094 00       		.byte	0
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 25
+
+
+ 1213 0095 00       		.byte	0
+ 1214 0096 0B       		.uleb128 0xb
+ 1215 0097 898201   		.uleb128 0x4109
+ 1216 009a 01       		.byte	0x1
+ 1217 009b 11       		.uleb128 0x11
+ 1218 009c 01       		.uleb128 0x1
+ 1219 009d 31       		.uleb128 0x31
+ 1220 009e 13       		.uleb128 0x13
+ 1221 009f 00       		.byte	0
+ 1222 00a0 00       		.byte	0
+ 1223 00a1 0C       		.uleb128 0xc
+ 1224 00a2 34       		.uleb128 0x34
+ 1225 00a3 00       		.byte	0
+ 1226 00a4 03       		.uleb128 0x3
+ 1227 00a5 0E       		.uleb128 0xe
+ 1228 00a6 3A       		.uleb128 0x3a
+ 1229 00a7 0B       		.uleb128 0xb
+ 1230 00a8 3B       		.uleb128 0x3b
+ 1231 00a9 05       		.uleb128 0x5
+ 1232 00aa 49       		.uleb128 0x49
+ 1233 00ab 13       		.uleb128 0x13
+ 1234 00ac 3F       		.uleb128 0x3f
+ 1235 00ad 19       		.uleb128 0x19
+ 1236 00ae 3C       		.uleb128 0x3c
+ 1237 00af 19       		.uleb128 0x19
+ 1238 00b0 00       		.byte	0
+ 1239 00b1 00       		.byte	0
+ 1240 00b2 0D       		.uleb128 0xd
+ 1241 00b3 35       		.uleb128 0x35
+ 1242 00b4 00       		.byte	0
+ 1243 00b5 49       		.uleb128 0x49
+ 1244 00b6 13       		.uleb128 0x13
+ 1245 00b7 00       		.byte	0
+ 1246 00b8 00       		.byte	0
+ 1247 00b9 0E       		.uleb128 0xe
+ 1248 00ba 2E       		.uleb128 0x2e
+ 1249 00bb 00       		.byte	0
+ 1250 00bc 3F       		.uleb128 0x3f
+ 1251 00bd 19       		.uleb128 0x19
+ 1252 00be 3C       		.uleb128 0x3c
+ 1253 00bf 19       		.uleb128 0x19
+ 1254 00c0 6E       		.uleb128 0x6e
+ 1255 00c1 0E       		.uleb128 0xe
+ 1256 00c2 03       		.uleb128 0x3
+ 1257 00c3 0E       		.uleb128 0xe
+ 1258 00c4 3A       		.uleb128 0x3a
+ 1259 00c5 0B       		.uleb128 0xb
+ 1260 00c6 3B       		.uleb128 0x3b
+ 1261 00c7 0B       		.uleb128 0xb
+ 1262 00c8 00       		.byte	0
+ 1263 00c9 00       		.byte	0
+ 1264 00ca 00       		.byte	0
+ 1265              		.section	.debug_loc,"",%progbits
+ 1266              	.Ldebug_loc0:
+ 1267              	.LLST0:
+ 1268 0000 00000000 		.4byte	.LVL0
+ 1269 0004 26000000 		.4byte	.LVL8
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 26
+
+
+ 1270 0008 0100     		.2byte	0x1
+ 1271 000a 50       		.byte	0x50
+ 1272 000b 26000000 		.4byte	.LVL8
+ 1273 000f 7E000000 		.4byte	.LFE63
+ 1274 0013 0400     		.2byte	0x4
+ 1275 0015 F3       		.byte	0xf3
+ 1276 0016 01       		.uleb128 0x1
+ 1277 0017 50       		.byte	0x50
+ 1278 0018 9F       		.byte	0x9f
+ 1279 0019 00000000 		.4byte	0
+ 1280 001d 00000000 		.4byte	0
+ 1281              	.LLST1:
+ 1282 0021 00000000 		.4byte	.LVL0
+ 1283 0025 1A000000 		.4byte	.LVL3
+ 1284 0029 0100     		.2byte	0x1
+ 1285 002b 51       		.byte	0x51
+ 1286 002c 1A000000 		.4byte	.LVL3
+ 1287 0030 7E000000 		.4byte	.LFE63
+ 1288 0034 0400     		.2byte	0x4
+ 1289 0036 F3       		.byte	0xf3
+ 1290 0037 01       		.uleb128 0x1
+ 1291 0038 51       		.byte	0x51
+ 1292 0039 9F       		.byte	0x9f
+ 1293 003a 00000000 		.4byte	0
+ 1294 003e 00000000 		.4byte	0
+ 1295              	.LLST2:
+ 1296 0042 00000000 		.4byte	.LVL0
+ 1297 0046 10000000 		.4byte	.LVL2
+ 1298 004a 0100     		.2byte	0x1
+ 1299 004c 52       		.byte	0x52
+ 1300 004d 10000000 		.4byte	.LVL2
+ 1301 0051 7E000000 		.4byte	.LFE63
+ 1302 0055 0400     		.2byte	0x4
+ 1303 0057 F3       		.byte	0xf3
+ 1304 0058 01       		.uleb128 0x1
+ 1305 0059 52       		.byte	0x52
+ 1306 005a 9F       		.byte	0x9f
+ 1307 005b 00000000 		.4byte	0
+ 1308 005f 00000000 		.4byte	0
+ 1309              	.LLST3:
+ 1310 0063 06000000 		.4byte	.LVL1
+ 1311 0067 10000000 		.4byte	.LVL2
+ 1312 006b 0200     		.2byte	0x2
+ 1313 006d 30       		.byte	0x30
+ 1314 006e 9F       		.byte	0x9f
+ 1315 006f 10000000 		.4byte	.LVL2
+ 1316 0073 29000000 		.4byte	.LVL9-1
+ 1317 0077 0100     		.2byte	0x1
+ 1318 0079 52       		.byte	0x52
+ 1319 007a 00000000 		.4byte	0
+ 1320 007e 00000000 		.4byte	0
+ 1321              	.LLST4:
+ 1322 0082 06000000 		.4byte	.LVL1
+ 1323 0086 1A000000 		.4byte	.LVL3
+ 1324 008a 0200     		.2byte	0x2
+ 1325 008c 30       		.byte	0x30
+ 1326 008d 9F       		.byte	0x9f
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 27
+
+
+ 1327 008e 1A000000 		.4byte	.LVL3
+ 1328 0092 29000000 		.4byte	.LVL9-1
+ 1329 0096 0100     		.2byte	0x1
+ 1330 0098 51       		.byte	0x51
+ 1331 0099 00000000 		.4byte	0
+ 1332 009d 00000000 		.4byte	0
+ 1333              	.LLST5:
+ 1334 00a1 06000000 		.4byte	.LVL1
+ 1335 00a5 1C000000 		.4byte	.LVL4
+ 1336 00a9 0200     		.2byte	0x2
+ 1337 00ab 30       		.byte	0x30
+ 1338 00ac 9F       		.byte	0x9f
+ 1339 00ad 1C000000 		.4byte	.LVL4
+ 1340 00b1 7E000000 		.4byte	.LFE63
+ 1341 00b5 0100     		.2byte	0x1
+ 1342 00b7 56       		.byte	0x56
+ 1343 00b8 00000000 		.4byte	0
+ 1344 00bc 00000000 		.4byte	0
+ 1345              	.LLST6:
+ 1346 00c0 06000000 		.4byte	.LVL1
+ 1347 00c4 1E000000 		.4byte	.LVL5
+ 1348 00c8 0200     		.2byte	0x2
+ 1349 00ca 30       		.byte	0x30
+ 1350 00cb 9F       		.byte	0x9f
+ 1351 00cc 1E000000 		.4byte	.LVL5
+ 1352 00d0 7E000000 		.4byte	.LFE63
+ 1353 00d4 0100     		.2byte	0x1
+ 1354 00d6 55       		.byte	0x55
+ 1355 00d7 00000000 		.4byte	0
+ 1356 00db 00000000 		.4byte	0
+ 1357              	.LLST7:
+ 1358 00df 06000000 		.4byte	.LVL1
+ 1359 00e3 22000000 		.4byte	.LVL6
+ 1360 00e7 0200     		.2byte	0x2
+ 1361 00e9 30       		.byte	0x30
+ 1362 00ea 9F       		.byte	0x9f
+ 1363 00eb 22000000 		.4byte	.LVL6
+ 1364 00ef 7E000000 		.4byte	.LFE63
+ 1365 00f3 0100     		.2byte	0x1
+ 1366 00f5 58       		.byte	0x58
+ 1367 00f6 00000000 		.4byte	0
+ 1368 00fa 00000000 		.4byte	0
+ 1369              	.LLST8:
+ 1370 00fe 06000000 		.4byte	.LVL1
+ 1371 0102 24000000 		.4byte	.LVL7
+ 1372 0106 0200     		.2byte	0x2
+ 1373 0108 30       		.byte	0x30
+ 1374 0109 9F       		.byte	0x9f
+ 1375 010a 24000000 		.4byte	.LVL7
+ 1376 010e 7E000000 		.4byte	.LFE63
+ 1377 0112 0100     		.2byte	0x1
+ 1378 0114 57       		.byte	0x57
+ 1379 0115 00000000 		.4byte	0
+ 1380 0119 00000000 		.4byte	0
+ 1381              	.LLST9:
+ 1382 011d 06000000 		.4byte	.LVL1
+ 1383 0121 6C000000 		.4byte	.LVL19
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 28
+
+
+ 1384 0125 0200     		.2byte	0x2
+ 1385 0127 30       		.byte	0x30
+ 1386 0128 9F       		.byte	0x9f
+ 1387 0129 6C000000 		.4byte	.LVL19
+ 1388 012d 73000000 		.4byte	.LVL21-1
+ 1389 0131 0100     		.2byte	0x1
+ 1390 0133 50       		.byte	0x50
+ 1391 0134 73000000 		.4byte	.LVL21-1
+ 1392 0138 7E000000 		.4byte	.LFE63
+ 1393 013c 1500     		.2byte	0x15
+ 1394 013e 74       		.byte	0x74
+ 1395 013f 00       		.sleb128 0
+ 1396 0140 75       		.byte	0x75
+ 1397 0141 00       		.sleb128 0
+ 1398 0142 22       		.byte	0x22
+ 1399 0143 76       		.byte	0x76
+ 1400 0144 00       		.sleb128 0
+ 1401 0145 22       		.byte	0x22
+ 1402 0146 77       		.byte	0x77
+ 1403 0147 00       		.sleb128 0
+ 1404 0148 22       		.byte	0x22
+ 1405 0149 78       		.byte	0x78
+ 1406 014a 00       		.sleb128 0
+ 1407 014b 22       		.byte	0x22
+ 1408 014c 23       		.byte	0x23
+ 1409 014d 10       		.uleb128 0x10
+ 1410 014e 08       		.byte	0x8
+ 1411 014f FF       		.byte	0xff
+ 1412 0150 1A       		.byte	0x1a
+ 1413 0151 20       		.byte	0x20
+ 1414 0152 9F       		.byte	0x9f
+ 1415 0153 00000000 		.4byte	0
+ 1416 0157 00000000 		.4byte	0
+ 1417              	.LLST10:
+ 1418 015b 00000000 		.4byte	.LVL23
+ 1419 015f 26000000 		.4byte	.LVL31
+ 1420 0163 0100     		.2byte	0x1
+ 1421 0165 50       		.byte	0x50
+ 1422 0166 26000000 		.4byte	.LVL31
+ 1423 016a 7E000000 		.4byte	.LFE64
+ 1424 016e 0400     		.2byte	0x4
+ 1425 0170 F3       		.byte	0xf3
+ 1426 0171 01       		.uleb128 0x1
+ 1427 0172 50       		.byte	0x50
+ 1428 0173 9F       		.byte	0x9f
+ 1429 0174 00000000 		.4byte	0
+ 1430 0178 00000000 		.4byte	0
+ 1431              	.LLST11:
+ 1432 017c 00000000 		.4byte	.LVL23
+ 1433 0180 1A000000 		.4byte	.LVL26
+ 1434 0184 0100     		.2byte	0x1
+ 1435 0186 51       		.byte	0x51
+ 1436 0187 1A000000 		.4byte	.LVL26
+ 1437 018b 7E000000 		.4byte	.LFE64
+ 1438 018f 0400     		.2byte	0x4
+ 1439 0191 F3       		.byte	0xf3
+ 1440 0192 01       		.uleb128 0x1
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 29
+
+
+ 1441 0193 51       		.byte	0x51
+ 1442 0194 9F       		.byte	0x9f
+ 1443 0195 00000000 		.4byte	0
+ 1444 0199 00000000 		.4byte	0
+ 1445              	.LLST12:
+ 1446 019d 00000000 		.4byte	.LVL23
+ 1447 01a1 10000000 		.4byte	.LVL25
+ 1448 01a5 0100     		.2byte	0x1
+ 1449 01a7 52       		.byte	0x52
+ 1450 01a8 10000000 		.4byte	.LVL25
+ 1451 01ac 7E000000 		.4byte	.LFE64
+ 1452 01b0 0400     		.2byte	0x4
+ 1453 01b2 F3       		.byte	0xf3
+ 1454 01b3 01       		.uleb128 0x1
+ 1455 01b4 52       		.byte	0x52
+ 1456 01b5 9F       		.byte	0x9f
+ 1457 01b6 00000000 		.4byte	0
+ 1458 01ba 00000000 		.4byte	0
+ 1459              	.LLST13:
+ 1460 01be 06000000 		.4byte	.LVL24
+ 1461 01c2 10000000 		.4byte	.LVL25
+ 1462 01c6 0200     		.2byte	0x2
+ 1463 01c8 30       		.byte	0x30
+ 1464 01c9 9F       		.byte	0x9f
+ 1465 01ca 10000000 		.4byte	.LVL25
+ 1466 01ce 29000000 		.4byte	.LVL32-1
+ 1467 01d2 0100     		.2byte	0x1
+ 1468 01d4 52       		.byte	0x52
+ 1469 01d5 00000000 		.4byte	0
+ 1470 01d9 00000000 		.4byte	0
+ 1471              	.LLST14:
+ 1472 01dd 06000000 		.4byte	.LVL24
+ 1473 01e1 1A000000 		.4byte	.LVL26
+ 1474 01e5 0200     		.2byte	0x2
+ 1475 01e7 30       		.byte	0x30
+ 1476 01e8 9F       		.byte	0x9f
+ 1477 01e9 1A000000 		.4byte	.LVL26
+ 1478 01ed 29000000 		.4byte	.LVL32-1
+ 1479 01f1 0100     		.2byte	0x1
+ 1480 01f3 51       		.byte	0x51
+ 1481 01f4 00000000 		.4byte	0
+ 1482 01f8 00000000 		.4byte	0
+ 1483              	.LLST15:
+ 1484 01fc 06000000 		.4byte	.LVL24
+ 1485 0200 1C000000 		.4byte	.LVL27
+ 1486 0204 0200     		.2byte	0x2
+ 1487 0206 30       		.byte	0x30
+ 1488 0207 9F       		.byte	0x9f
+ 1489 0208 1C000000 		.4byte	.LVL27
+ 1490 020c 7E000000 		.4byte	.LFE64
+ 1491 0210 0100     		.2byte	0x1
+ 1492 0212 56       		.byte	0x56
+ 1493 0213 00000000 		.4byte	0
+ 1494 0217 00000000 		.4byte	0
+ 1495              	.LLST16:
+ 1496 021b 06000000 		.4byte	.LVL24
+ 1497 021f 1E000000 		.4byte	.LVL28
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 30
+
+
+ 1498 0223 0200     		.2byte	0x2
+ 1499 0225 30       		.byte	0x30
+ 1500 0226 9F       		.byte	0x9f
+ 1501 0227 1E000000 		.4byte	.LVL28
+ 1502 022b 7E000000 		.4byte	.LFE64
+ 1503 022f 0100     		.2byte	0x1
+ 1504 0231 55       		.byte	0x55
+ 1505 0232 00000000 		.4byte	0
+ 1506 0236 00000000 		.4byte	0
+ 1507              	.LLST17:
+ 1508 023a 06000000 		.4byte	.LVL24
+ 1509 023e 22000000 		.4byte	.LVL29
+ 1510 0242 0200     		.2byte	0x2
+ 1511 0244 30       		.byte	0x30
+ 1512 0245 9F       		.byte	0x9f
+ 1513 0246 22000000 		.4byte	.LVL29
+ 1514 024a 7E000000 		.4byte	.LFE64
+ 1515 024e 0100     		.2byte	0x1
+ 1516 0250 58       		.byte	0x58
+ 1517 0251 00000000 		.4byte	0
+ 1518 0255 00000000 		.4byte	0
+ 1519              	.LLST18:
+ 1520 0259 06000000 		.4byte	.LVL24
+ 1521 025d 24000000 		.4byte	.LVL30
+ 1522 0261 0200     		.2byte	0x2
+ 1523 0263 30       		.byte	0x30
+ 1524 0264 9F       		.byte	0x9f
+ 1525 0265 24000000 		.4byte	.LVL30
+ 1526 0269 7E000000 		.4byte	.LFE64
+ 1527 026d 0100     		.2byte	0x1
+ 1528 026f 57       		.byte	0x57
+ 1529 0270 00000000 		.4byte	0
+ 1530 0274 00000000 		.4byte	0
+ 1531              	.LLST19:
+ 1532 0278 06000000 		.4byte	.LVL24
+ 1533 027c 6C000000 		.4byte	.LVL42
+ 1534 0280 0200     		.2byte	0x2
+ 1535 0282 30       		.byte	0x30
+ 1536 0283 9F       		.byte	0x9f
+ 1537 0284 6C000000 		.4byte	.LVL42
+ 1538 0288 73000000 		.4byte	.LVL44-1
+ 1539 028c 0100     		.2byte	0x1
+ 1540 028e 50       		.byte	0x50
+ 1541 028f 73000000 		.4byte	.LVL44-1
+ 1542 0293 7E000000 		.4byte	.LFE64
+ 1543 0297 1500     		.2byte	0x15
+ 1544 0299 74       		.byte	0x74
+ 1545 029a 00       		.sleb128 0
+ 1546 029b 75       		.byte	0x75
+ 1547 029c 00       		.sleb128 0
+ 1548 029d 22       		.byte	0x22
+ 1549 029e 76       		.byte	0x76
+ 1550 029f 00       		.sleb128 0
+ 1551 02a0 22       		.byte	0x22
+ 1552 02a1 77       		.byte	0x77
+ 1553 02a2 00       		.sleb128 0
+ 1554 02a3 22       		.byte	0x22
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 31
+
+
+ 1555 02a4 78       		.byte	0x78
+ 1556 02a5 00       		.sleb128 0
+ 1557 02a6 22       		.byte	0x22
+ 1558 02a7 23       		.byte	0x23
+ 1559 02a8 28       		.uleb128 0x28
+ 1560 02a9 08       		.byte	0x8
+ 1561 02aa FF       		.byte	0xff
+ 1562 02ab 1A       		.byte	0x1a
+ 1563 02ac 20       		.byte	0x20
+ 1564 02ad 9F       		.byte	0x9f
+ 1565 02ae 00000000 		.4byte	0
+ 1566 02b2 00000000 		.4byte	0
+ 1567              	.LLST20:
+ 1568 02b6 00000000 		.4byte	.LVL46
+ 1569 02ba 2C000000 		.4byte	.LVL58
+ 1570 02be 0100     		.2byte	0x1
+ 1571 02c0 50       		.byte	0x50
+ 1572 02c1 2C000000 		.4byte	.LVL58
+ 1573 02c5 72000000 		.4byte	.LFE65
+ 1574 02c9 0400     		.2byte	0x4
+ 1575 02cb F3       		.byte	0xf3
+ 1576 02cc 01       		.uleb128 0x1
+ 1577 02cd 50       		.byte	0x50
+ 1578 02ce 9F       		.byte	0x9f
+ 1579 02cf 00000000 		.4byte	0
+ 1580 02d3 00000000 		.4byte	0
+ 1581              	.LLST21:
+ 1582 02d7 00000000 		.4byte	.LVL46
+ 1583 02db 06000000 		.4byte	.LVL48
+ 1584 02df 0100     		.2byte	0x1
+ 1585 02e1 51       		.byte	0x51
+ 1586 02e2 06000000 		.4byte	.LVL48
+ 1587 02e6 72000000 		.4byte	.LFE65
+ 1588 02ea 0400     		.2byte	0x4
+ 1589 02ec F3       		.byte	0xf3
+ 1590 02ed 01       		.uleb128 0x1
+ 1591 02ee 51       		.byte	0x51
+ 1592 02ef 9F       		.byte	0x9f
+ 1593 02f0 00000000 		.4byte	0
+ 1594 02f4 00000000 		.4byte	0
+ 1595              	.LLST22:
+ 1596 02f8 04000000 		.4byte	.LVL47
+ 1597 02fc 0C000000 		.4byte	.LVL49
+ 1598 0300 0200     		.2byte	0x2
+ 1599 0302 30       		.byte	0x30
+ 1600 0303 9F       		.byte	0x9f
+ 1601 0304 0C000000 		.4byte	.LVL49
+ 1602 0308 10000000 		.4byte	.LVL50
+ 1603 030c 0200     		.2byte	0x2
+ 1604 030e 31       		.byte	0x31
+ 1605 030f 9F       		.byte	0x9f
+ 1606 0310 10000000 		.4byte	.LVL50
+ 1607 0314 14000000 		.4byte	.LVL52
+ 1608 0318 0200     		.2byte	0x2
+ 1609 031a 30       		.byte	0x30
+ 1610 031b 9F       		.byte	0x9f
+ 1611 031c 14000000 		.4byte	.LVL52
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 32
+
+
+ 1612 0320 22000000 		.4byte	.LVL54
+ 1613 0324 0100     		.2byte	0x1
+ 1614 0326 54       		.byte	0x54
+ 1615 0327 00000000 		.4byte	0
+ 1616 032b 00000000 		.4byte	0
+ 1617              	.LLST23:
+ 1618 032f 04000000 		.4byte	.LVL47
+ 1619 0333 0C000000 		.4byte	.LVL49
+ 1620 0337 0200     		.2byte	0x2
+ 1621 0339 30       		.byte	0x30
+ 1622 033a 9F       		.byte	0x9f
+ 1623 033b 0C000000 		.4byte	.LVL49
+ 1624 033f 10000000 		.4byte	.LVL50
+ 1625 0343 0100     		.2byte	0x1
+ 1626 0345 51       		.byte	0x51
+ 1627 0346 10000000 		.4byte	.LVL50
+ 1628 034a 12000000 		.4byte	.LVL51
+ 1629 034e 0200     		.2byte	0x2
+ 1630 0350 30       		.byte	0x30
+ 1631 0351 9F       		.byte	0x9f
+ 1632 0352 12000000 		.4byte	.LVL51
+ 1633 0356 24000000 		.4byte	.LVL55
+ 1634 035a 0100     		.2byte	0x1
+ 1635 035c 51       		.byte	0x51
+ 1636 035d 24000000 		.4byte	.LVL55
+ 1637 0361 2A000000 		.4byte	.LVL57
+ 1638 0365 0100     		.2byte	0x1
+ 1639 0367 54       		.byte	0x54
+ 1640 0368 00000000 		.4byte	0
+ 1641 036c 00000000 		.4byte	0
+ 1642              	.LLST24:
+ 1643 0370 04000000 		.4byte	.LVL47
+ 1644 0374 28000000 		.4byte	.LVL56
+ 1645 0378 0200     		.2byte	0x2
+ 1646 037a 30       		.byte	0x30
+ 1647 037b 9F       		.byte	0x9f
+ 1648 037c 28000000 		.4byte	.LVL56
+ 1649 0380 72000000 		.4byte	.LFE65
+ 1650 0384 0100     		.2byte	0x1
+ 1651 0386 56       		.byte	0x56
+ 1652 0387 00000000 		.4byte	0
+ 1653 038b 00000000 		.4byte	0
+ 1654              	.LLST25:
+ 1655 038f 04000000 		.4byte	.LVL47
+ 1656 0393 2A000000 		.4byte	.LVL57
+ 1657 0397 0200     		.2byte	0x2
+ 1658 0399 30       		.byte	0x30
+ 1659 039a 9F       		.byte	0x9f
+ 1660 039b 2A000000 		.4byte	.LVL57
+ 1661 039f 72000000 		.4byte	.LFE65
+ 1662 03a3 0100     		.2byte	0x1
+ 1663 03a5 54       		.byte	0x54
+ 1664 03a6 00000000 		.4byte	0
+ 1665 03aa 00000000 		.4byte	0
+ 1666              	.LLST26:
+ 1667 03ae 04000000 		.4byte	.LVL47
+ 1668 03b2 62000000 		.4byte	.LVL67
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 33
+
+
+ 1669 03b6 0200     		.2byte	0x2
+ 1670 03b8 30       		.byte	0x30
+ 1671 03b9 9F       		.byte	0x9f
+ 1672 03ba 62000000 		.4byte	.LVL67
+ 1673 03be 69000000 		.4byte	.LVL69-1
+ 1674 03c2 0100     		.2byte	0x1
+ 1675 03c4 50       		.byte	0x50
+ 1676 03c5 69000000 		.4byte	.LVL69-1
+ 1677 03c9 72000000 		.4byte	.LFE65
+ 1678 03cd 0F00     		.2byte	0xf
+ 1679 03cf 74       		.byte	0x74
+ 1680 03d0 00       		.sleb128 0
+ 1681 03d1 75       		.byte	0x75
+ 1682 03d2 00       		.sleb128 0
+ 1683 03d3 22       		.byte	0x22
+ 1684 03d4 76       		.byte	0x76
+ 1685 03d5 00       		.sleb128 0
+ 1686 03d6 22       		.byte	0x22
+ 1687 03d7 23       		.byte	0x23
+ 1688 03d8 28       		.uleb128 0x28
+ 1689 03d9 08       		.byte	0x8
+ 1690 03da FF       		.byte	0xff
+ 1691 03db 1A       		.byte	0x1a
+ 1692 03dc 20       		.byte	0x20
+ 1693 03dd 9F       		.byte	0x9f
+ 1694 03de 00000000 		.4byte	0
+ 1695 03e2 00000000 		.4byte	0
+ 1696              		.section	.debug_aranges,"",%progbits
+ 1697 0000 2C000000 		.4byte	0x2c
+ 1698 0004 0200     		.2byte	0x2
+ 1699 0006 00000000 		.4byte	.Ldebug_info0
+ 1700 000a 04       		.byte	0x4
+ 1701 000b 00       		.byte	0
+ 1702 000c 0000     		.2byte	0
+ 1703 000e 0000     		.2byte	0
+ 1704 0010 00000000 		.4byte	.LFB63
+ 1705 0014 7E000000 		.4byte	.LFE63-.LFB63
+ 1706 0018 00000000 		.4byte	.LFB64
+ 1707 001c 7E000000 		.4byte	.LFE64-.LFB64
+ 1708 0020 00000000 		.4byte	.LFB65
+ 1709 0024 72000000 		.4byte	.LFE65-.LFB65
+ 1710 0028 00000000 		.4byte	0
+ 1711 002c 00000000 		.4byte	0
+ 1712              		.section	.debug_ranges,"",%progbits
+ 1713              	.Ldebug_ranges0:
+ 1714 0000 00000000 		.4byte	.LFB63
+ 1715 0004 7E000000 		.4byte	.LFE63
+ 1716 0008 00000000 		.4byte	.LFB64
+ 1717 000c 7E000000 		.4byte	.LFE64
+ 1718 0010 00000000 		.4byte	.LFB65
+ 1719 0014 72000000 		.4byte	.LFE65
+ 1720 0018 00000000 		.4byte	0
+ 1721 001c 00000000 		.4byte	0
+ 1722              		.section	.debug_line,"",%progbits
+ 1723              	.Ldebug_line0:
+ 1724 0000 B2010000 		.section	.debug_str,"MS",%progbits,1
+ 1724      02003B01 
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 34
+
+
+ 1724      00000201 
+ 1724      FB0E0D00 
+ 1724      01010101 
+ 1725              	.LASF22:
+ 1726 0000 74656D70 		.ascii	"temp_cw_h\000"
+ 1726      5F63775F 
+ 1726      6800
+ 1727              	.LASF32:
+ 1728 000a 74656D70 		.ascii	"temp_velocity_l\000"
+ 1728      5F76656C 
+ 1728      6F636974 
+ 1728      795F6C00 
+ 1729              	.LASF23:
+ 1730 001a 74656D70 		.ascii	"temp_cw_l\000"
+ 1730      5F63775F 
+ 1730      6C00
+ 1731              	.LASF35:
+ 1732 0024 53657453 		.ascii	"SetServoVelocity\000"
+ 1732      6572766F 
+ 1732      56656C6F 
+ 1732      63697479 
+ 1732      00
+ 1733              	.LASF29:
+ 1734 0035 74656D70 		.ascii	"temp_velocity\000"
+ 1734      5F76656C 
+ 1734      6F636974 
+ 1734      7900
+ 1735              	.LASF9:
+ 1736 0043 5F5F696E 		.ascii	"__int32_t\000"
+ 1736      7433325F 
+ 1736      7400
+ 1737              	.LASF20:
+ 1738 004d 74656D70 		.ascii	"temp_ccw_h\000"
+ 1738      5F636377 
+ 1738      5F6800
+ 1739              	.LASF21:
+ 1740 0058 74656D70 		.ascii	"temp_ccw_l\000"
+ 1740      5F636377 
+ 1740      5F6C00
+ 1741              	.LASF33:
+ 1742 0063 74656D70 		.ascii	"temp_position_h\000"
+ 1742      5F706F73 
+ 1742      6974696F 
+ 1742      6E5F6800 
+ 1743              	.LASF11:
+ 1744 0073 666C6F61 		.ascii	"float\000"
+ 1744      7400
+ 1745              	.LASF7:
+ 1746 0079 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1746      206C6F6E 
+ 1746      6720756E 
+ 1746      7369676E 
+ 1746      65642069 
+ 1747              	.LASF34:
+ 1748 0090 74656D70 		.ascii	"temp_position_l\000"
+ 1748      5F706F73 
+ 1748      6974696F 
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 35
+
+
+ 1748      6E5F6C00 
+ 1749              	.LASF1:
+ 1750 00a0 756E7369 		.ascii	"unsigned char\000"
+ 1750      676E6564 
+ 1750      20636861 
+ 1750      7200
+ 1751              	.LASF41:
+ 1752 00ae 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1752      43313120 
+ 1752      352E342E 
+ 1752      31203230 
+ 1752      31363036 
+ 1753 00e1 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 1753      20726576 
+ 1753      6973696F 
+ 1753      6E203233 
+ 1753      37373135 
+ 1754 0114 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1754      66756E63 
+ 1754      74696F6E 
+ 1754      2D736563 
+ 1754      74696F6E 
+ 1755              	.LASF25:
+ 1756 013c 53657453 		.ascii	"SetServoLimit\000"
+ 1756      6572766F 
+ 1756      4C696D69 
+ 1756      7400
+ 1757              	.LASF5:
+ 1758 014a 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1758      20756E73 
+ 1758      69676E65 
+ 1758      6420696E 
+ 1758      7400
+ 1759              	.LASF3:
+ 1760 015c 73686F72 		.ascii	"short unsigned int\000"
+ 1760      7420756E 
+ 1760      7369676E 
+ 1760      65642069 
+ 1760      6E7400
+ 1761              	.LASF44:
+ 1762 016f 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 1762      52784275 
+ 1762      66666572 
+ 1762      00
+ 1763              	.LASF12:
+ 1764 017c 646F7562 		.ascii	"double\000"
+ 1764      6C6500
+ 1765              	.LASF2:
+ 1766 0183 73686F72 		.ascii	"short int\000"
+ 1766      7420696E 
+ 1766      7400
+ 1767              	.LASF30:
+ 1768 018d 74656D70 		.ascii	"temp_position\000"
+ 1768      5F706F73 
+ 1768      6974696F 
+ 1768      6E00
+ 1769              	.LASF28:
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 36
+
+
+ 1770 019b 76656C6F 		.ascii	"velocity\000"
+ 1770      63697479 
+ 1770      00
+ 1771              	.LASF27:
+ 1772 01a4 706F7369 		.ascii	"position\000"
+ 1772      74696F6E 
+ 1772      00
+ 1773              	.LASF8:
+ 1774 01ad 756E7369 		.ascii	"unsigned int\000"
+ 1774      676E6564 
+ 1774      20696E74 
+ 1774      00
+ 1775              	.LASF17:
+ 1776 01ba 6363775F 		.ascii	"ccw_limit\000"
+ 1776      6C696D69 
+ 1776      7400
+ 1777              	.LASF42:
+ 1778 01c4 73657276 		.ascii	"servo.c\000"
+ 1778      6F2E6300 
+ 1779              	.LASF43:
+ 1780 01cc 433A5C55 		.ascii	"C:\\Users\\lab512\\Desktop\\lmx_borrow\\Distance\\D"
+ 1780      73657273 
+ 1780      5C6C6162 
+ 1780      3531325C 
+ 1780      4465736B 
+ 1781 01f9 69737461 		.ascii	"istance.cydsn\000"
+ 1781      6E63652E 
+ 1781      63796473 
+ 1781      6E00
+ 1782              	.LASF10:
+ 1783 0207 696E7433 		.ascii	"int32_t\000"
+ 1783      325F7400 
+ 1784              	.LASF39:
+ 1785 020f 55415254 		.ascii	"UART_PutChar\000"
+ 1785      5F507574 
+ 1785      43686172 
+ 1785      00
+ 1786              	.LASF26:
+ 1787 021c 53657453 		.ascii	"SetServoPosition\000"
+ 1787      6572766F 
+ 1787      506F7369 
+ 1787      74696F6E 
+ 1787      00
+ 1788              	.LASF6:
+ 1789 022d 6C6F6E67 		.ascii	"long long int\000"
+ 1789      206C6F6E 
+ 1789      6720696E 
+ 1789      7400
+ 1790              	.LASF15:
+ 1791 023b 73697A65 		.ascii	"sizetype\000"
+ 1791      74797065 
+ 1791      00
+ 1792              	.LASF13:
+ 1793 0244 63686172 		.ascii	"char\000"
+ 1793      00
+ 1794              	.LASF38:
+ 1795 0249 74656D70 		.ascii	"temp_value_l\000"
+ARM GAS  C:\Users\lab512\AppData\Local\Temp\ccieL2OU.s 			page 37
+
+
+ 1795      5F76616C 
+ 1795      75655F6C 
+ 1795      00
+ 1796              	.LASF19:
+ 1797 0256 74656D70 		.ascii	"temp_cw\000"
+ 1797      5F637700 
+ 1798              	.LASF36:
+ 1799 025e 74656D70 		.ascii	"temp_sign\000"
+ 1799      5F736967 
+ 1799      6E00
+ 1800              	.LASF4:
+ 1801 0268 6C6F6E67 		.ascii	"long int\000"
+ 1801      20696E74 
+ 1801      00
+ 1802              	.LASF24:
+ 1803 0271 74656D70 		.ascii	"temp_sum\000"
+ 1803      5F73756D 
+ 1803      00
+ 1804              	.LASF37:
+ 1805 027a 74656D70 		.ascii	"temp_value_h\000"
+ 1805      5F76616C 
+ 1805      75655F68 
+ 1805      00
+ 1806              	.LASF14:
+ 1807 0287 6C6F6E67 		.ascii	"long double\000"
+ 1807      20646F75 
+ 1807      626C6500 
+ 1808              	.LASF0:
+ 1809 0293 7369676E 		.ascii	"signed char\000"
+ 1809      65642063 
+ 1809      68617200 
+ 1810              	.LASF18:
+ 1811 029f 74656D70 		.ascii	"temp_ccw\000"
+ 1811      5F636377 
+ 1811      00
+ 1812              	.LASF40:
+ 1813 02a8 43794465 		.ascii	"CyDelay\000"
+ 1813      6C617900 
+ 1814              	.LASF31:
+ 1815 02b0 74656D70 		.ascii	"temp_velocity_h\000"
+ 1815      5F76656C 
+ 1815      6F636974 
+ 1815      795F6800 
+ 1816              	.LASF16:
+ 1817 02c0 63775F6C 		.ascii	"cw_limit\000"
+ 1817      696D6974 
+ 1817      00
+ 1818              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

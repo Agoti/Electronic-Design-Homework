@@ -1,0 +1,15 @@
+--------------- Rebuild Started: 09/05/2023 18:05:57 Project: main.c, Configuration: ARM GCC 5.4-2016-q2-update Debug ---------------
+arm-none-eabi-gcc.exe -mcpu=cortex-m3 -mthumb -I. -IGenerated_Source\PSoC5 -Wa,-alh=.\CortexM3\ARM_GCC_541\Debug/main.lst -g -D DEBUG -D CY_CORE_ID=0 -Wall -ffunction-sections -ffat-lto-objects -Og -c main.c -o .\CortexM3\ARM_GCC_541\Debug\main.o
+main.c: In function 'main':
+main.c:64:5: error: 'Timer_reset' undeclared (first use in this function)
+     Timer_reset
+     ^
+main.c:64:5: note: each undeclared identifier is reported only once for each function it appears in
+main.c:66:5: error: expected ';' before 'while'
+     while (1)
+     ^
+main.c:58:12: warning: unused variable 'cnt' [-Wunused-variable]
+     uint16 cnt = 0;
+            ^
+The command 'arm-none-eabi-gcc.exe' failed with exit code '1'.
+--------------- Rebuild Failed: 09/05/2023 18:05:57 ---------------

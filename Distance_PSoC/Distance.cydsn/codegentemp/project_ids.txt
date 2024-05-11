@@ -1,0 +1,6 @@
+C:\Users\lab512\Desktop\lmx_borrow\Distance\Distance.cydsn\Distance.cyprj|74363c58-89cd-4c9d-914e-89720cfe0b88
+D:\PsocCreator4.2\PSoC Creator\4.2\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|9c279380-da4d-4b40-8c9c-91662bf41a3b
+C:\Users\lab512\Documents\PSoC Creator\4.2\Downloads ( 4.2).cylib\Downloads ( 4.2).cyprj|165e7658-5829-4426-84e1-a6c8eb7f93bb
+D:\PsocCreator4.2\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|77f61148-9cd9-4fb9-afd7-d49725f03f87
+D:\PsocCreator4.2\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|89808487-5fcf-47a6-8791-3843103baff6
+D:\PsocCreator4.2\PSoC Creator\4.2\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|9da90365-94bf-4468-a1d3-6f5255f40b6c
